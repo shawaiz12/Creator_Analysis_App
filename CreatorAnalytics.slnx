@@ -1,0 +1,29 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/CreatorAnalytics.SharedKernel/CreatorAnalytics.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/src/Host/">
+    <Project Path="src/Host/CreatorAnalytics.Api/CreatorAnalytics.Api.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Audit/">
+    <Project Path="src/Modules/Audit/CreatorAnalytics.Audit.Contracts/CreatorAnalytics.Audit.Contracts.csproj" />
+    <Project Path="src/Modules/Audit/CreatorAnalytics.Audit/CreatorAnalytics.Audit.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Identity/">
+    <Project Path="src/Modules/Identity/CreatorAnalytics.Identity.Contracts/CreatorAnalytics.Identity.Contracts.csproj" />
+    <Project Path="src/Modules/Identity/CreatorAnalytics.Identity/CreatorAnalytics.Identity.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Integration/">
+    <Project Path="src/Modules/Integration/CreatorAnalytics.Integration.Contracts/CreatorAnalytics.Integration.Contracts.csproj" />
+    <Project Path="src/Modules/Integration/CreatorAnalytics.Integration/CreatorAnalytics.Integration.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Strategy/">
+    <Project Path="src/Modules/Strategy/CreatorAnalytics.Strategy.Contracts/CreatorAnalytics.Strategy.Contracts.csproj" />
+    <Project Path="src/Modules/Strategy/CreatorAnalytics.Strategy/CreatorAnalytics.Strategy.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CreatorAnalytics.ArchitectureTests/CreatorAnalytics.ArchitectureTests.csproj" />
+  </Folder>
+</Solution>
