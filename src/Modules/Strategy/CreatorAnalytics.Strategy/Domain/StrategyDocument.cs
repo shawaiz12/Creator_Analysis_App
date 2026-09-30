@@ -9,21 +9,21 @@ namespace CreatorAnalytics.Strategy.Domain
         public Guid Id { get; private set; }
         public Guid TenantId { get; private set; }
         public string VideoID { get; private set; }
-        public ReviewStatus Status { get; private set; }
+        public StrategyStatus Status { get; private set; }
 
         public StrategyDocument(Guid tenantId, string videoId)
         {
             Id = Guid.NewGuid();
             TenantId = tenantId;
             VideoID = videoId;
-            Status = ReviewStatus.Draft;
+            Status = StrategyStatus.Draft;
         }
 
         public void SubmitForApproval()
         {
-            if (Status != ReviewStatus.Draft && Status != ReviewStatus.NeedsRevision)
+            if (Status != StrategyStatus.Draft && Status != StrategyStatus.NeedsRevision)
                 throw new InvalidOperationException($"Cannot submit from{Status}. Must be Draft or NeedsRevision");
-            Status = ReviewStatus.PendingApproval;
+            Status = StrategyStatus.PendingApproval;
         }
 
     }

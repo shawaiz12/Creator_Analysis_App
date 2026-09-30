@@ -1,7 +1,7 @@
 ﻿
 namespace CreatorAnalytics.Strategy.Domain
 {
-    public enum ReviewStatus
+    public enum StrategyStatus
     {
         Draft,
         PendingApproval,
