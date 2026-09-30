@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Integration\CreatorAnalytics.Integration.Contracts\CreatorAnalytics.Integration.Contracts.csproj" />
+    <ProjectReference Include="..\CreatorAnalytics.Strategy.Contracts\CreatorAnalytics.Strategy.Contracts.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
