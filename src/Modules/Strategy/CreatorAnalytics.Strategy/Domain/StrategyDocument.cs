@@ -23,7 +23,7 @@ namespace CreatorAnalytics.Strategy.Domain
         {
             if (Status != ReviewStatus.Draft && Status != ReviewStatus.NeedsRevision)
                 throw new InvalidOperationException($"Cannot submit from{Status}. Must be Draft or NeedsRevision");
-            Status = ReviewStatus.PendingApprovel;
+            Status = ReviewStatus.PendingApproval;
         }
 
     }

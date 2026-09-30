@@ -4,7 +4,7 @@ namespace CreatorAnalytics.Strategy.Domain
     public enum ReviewStatus
     {
         Draft,
-        PendingApprovel,
+        PendingApproval,
         Approved,
         NeedsRevision,
         Implemented
