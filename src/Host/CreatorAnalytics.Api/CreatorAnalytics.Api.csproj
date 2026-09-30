@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Modules\Identity\CreatorAnalytics.Identity\CreatorAnalytics.Identity.csproj" />
     <ProjectReference Include="..\..\Modules\Integration\CreatorAnalytics.Integration\CreatorAnalytics.Integration.csproj" />
+    <ProjectReference Include="..\..\Modules\Strategy\CreatorAnalytics.Strategy\CreatorAnalytics.Strategy.csproj" />
   </ItemGroup>
 
 </Project>
