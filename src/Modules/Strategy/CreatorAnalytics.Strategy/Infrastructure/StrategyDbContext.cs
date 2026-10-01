@@ -19,5 +19,6 @@ public class StrategyDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(Schema);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(StrategyDbContext).Assembly);
     }
 }
