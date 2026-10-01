@@ -11,6 +11,8 @@ namespace CreatorAnalytics.Strategy.Infrastructure
             builder.ToTable("StrategyDocuments");
             builder.HasKey(x => x.Id);
 
+            builder.Property(x => x.RowVersion).IsRowVersion();
+
             builder.Property(x => x.Status)
                 .HasConversion<string>()
                 .HasMaxLength(30)

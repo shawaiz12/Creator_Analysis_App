@@ -11,6 +11,8 @@ namespace CreatorAnalytics.Strategy.Domain
         public Guid VideoId { get; private set; }
         public StrategyStatus Status { get; private set; }
 
+        public byte[] RowVersion { get; private set; } = Array.Empty<byte>();
+
         public StrategyDocument(Guid tenantId, Guid videoId)
         {
             Id = Guid.NewGuid();
