@@ -1,4 +1,4 @@
-﻿using CreatorAnalytics.Strategy.Domain;
+using CreatorAnalytics.Strategy.Domain;
 
 namespace CreatorAnalytics.Strategy.Tests;
 
@@ -53,7 +53,7 @@ public class StrategyDocumentRevisionTests
     public void Content_Is_Frozen_While_Pending_Approval()
     {
         var document = NewDocument();
-        document.SubmitForApproval();
+        document.AddContentAndSubmit();
 
         var exception = Assert.Throws<InvalidOperationException>(
             () => document.AddRevision("Late edit", RevisionOrigin.Human, Guid.NewGuid()));
@@ -65,11 +65,20 @@ public class StrategyDocumentRevisionTests
     public void Revision_Can_Be_Added_After_Rejection()
     {
         var document = NewDocument();
-        document.SubmitForApproval();
+        document.AddContentAndSubmit();
         document.Reject("Hook is weak.");
 
         var revision = document.AddRevision("Stronger hook", RevisionOrigin.Human, Guid.NewGuid());
 
-        Assert.Equal(1, revision.VersionNumber);
+        Assert.Equal(2, revision.VersionNumber);
+    }
+    [Fact]
+    public void Cannot_Submit_Without_Content()
+    {
+        var document = NewDocument();
+
+        var exception = Assert.Throws<InvalidOperationException>(() => document.SubmitForApproval());
+
+        Assert.Contains("no content", exception.Message);
     }
 }

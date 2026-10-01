@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using CreatorAnalytics.Strategy.Domain;
 using Xunit;
 
@@ -21,7 +21,7 @@ namespace CreatorAnalytics.Strategy.Tests
         {
             var document = new StrategyDocument(_tenantId, _videoId);
 
-            document.SubmitForApproval();
+            document.AddContentAndSubmit();
             Assert.Equal(StrategyStatus.PendingApproval, document.Status);
 
             document.Approve();
@@ -35,7 +35,7 @@ namespace CreatorAnalytics.Strategy.Tests
         public void Reject_With_Reason_Transitions_To_NeedsRevision()
         {
             var document = new StrategyDocument(_tenantId, _videoId);
-            document.SubmitForApproval();
+            document.AddContentAndSubmit();
 
             document.Reject("Pacing is too slow in the first 30 seconds.");
             Assert.Equal(StrategyStatus.NeedsRevision, document.Status);
@@ -55,10 +55,43 @@ namespace CreatorAnalytics.Strategy.Tests
         public void Reject_Without_Reason_Throws_ArgumentException()
         {
             var document = new StrategyDocument(_tenantId, _videoId);
-            document.SubmitForApproval();
+            document.AddContentAndSubmit();
 
             // Passing an empty string should fail
             Assert.Throws<ArgumentException>(() => document.Reject("   "));
         }
+
+        [Fact]
+        public void Rejected_Document_Can_Be_Resubmitted()
+        {
+            var document = new StrategyDocument(_tenantId, _videoId);
+            document.AddContentAndSubmit();
+            document.Reject("Hook is too weak.");
+
+            document.AddContentAndSubmit();
+
+            Assert.Equal(StrategyStatus.PendingApproval, document.Status);
+        }
+
+        [Fact]
+        public void Cannot_Approve_Twice()
+        {
+            var document = new StrategyDocument(_tenantId, _videoId);
+            document.AddContentAndSubmit();
+            document.Approve();
+
+            Assert.Throws<InvalidOperationException>(() => document.Approve());
+        }
+
+        [Fact]
+        public void Cannot_Implement_Before_Approval()
+        {
+            var document = new StrategyDocument(_tenantId, _videoId);
+            document.AddContentAndSubmit();
+
+            Assert.Throws<InvalidOperationException>(() => document.MarkImplemented());
+        }
+
+
     }
 }

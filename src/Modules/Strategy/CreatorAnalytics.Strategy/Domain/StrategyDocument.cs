@@ -46,6 +46,10 @@ namespace CreatorAnalytics.Strategy.Domain
         {
             if (Status != StrategyStatus.Draft && Status != StrategyStatus.NeedsRevision)
                 throw new InvalidOperationException($"Cannot submit from {Status}. Must be Draft or NeedsRevision.");
+
+            if (_revisions.Count == 0)
+                throw new InvalidOperationException("Cannot submit a strategy with no content. Add a revision first.");
+
             Status = StrategyStatus.PendingApproval;
         }
 
