@@ -10,7 +10,8 @@ public static class StrategyModule
         this IServiceCollection services, string connectionString)
     {
         services.AddDbContext<StrategyDbContext>(options =>
-            options.UseSqlServer(connectionString));
+     options.UseSqlServer(connectionString, sql =>
+         sql.MigrationsHistoryTable("__EFMigrationsHistory", StrategyDbContext.Schema)));
 
         return services;
     }
