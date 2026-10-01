@@ -18,6 +18,7 @@ namespace CreatorAnalytics.Strategy.Domain
             VideoId = videoId;
             Status = StrategyStatus.Draft;
         }
+        private StrategyDocument() { }
 
 
         private readonly List<StrategyRevision> _revisions = new();

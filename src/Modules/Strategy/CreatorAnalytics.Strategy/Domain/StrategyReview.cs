@@ -29,5 +29,7 @@ namespace CreatorAnalytics.Strategy.Domain
             Reason = reason;
             ReviewedAtUtc = DateTime.UtcNow;
         }
+
+        private StrategyReview() { }
     }
 }

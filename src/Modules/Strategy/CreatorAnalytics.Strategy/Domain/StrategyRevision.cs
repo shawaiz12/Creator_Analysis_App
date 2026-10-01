@@ -30,5 +30,10 @@ namespace CreatorAnalytics.Strategy.Domain
             AuthorUserId = authorUserId;
             CreatedAtUtc = DateTime.UtcNow;
         }
+
+        private StrategyRevision()
+        {
+            Content = string.Empty;
+        }
     }
 }
