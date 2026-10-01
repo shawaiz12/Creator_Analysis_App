@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO.Pipes;
+
 
 
 namespace CreatorAnalytics.Strategy.Domain
@@ -19,10 +19,33 @@ namespace CreatorAnalytics.Strategy.Domain
             Status = StrategyStatus.Draft;
         }
 
+
+        private readonly List<StrategyRevision> _revisions = new();
+
+        public IReadOnlyList<StrategyRevision> Revisions => _revisions;
+
+        public StrategyRevision? CurrentRevision =>
+            _revisions.Count == 0 ? null : _revisions[^1];
+
+        public StrategyRevision AddRevision(string content, RevisionOrigin origin, Guid? authorUserId)
+        {
+            if (Status != StrategyStatus.Draft && Status != StrategyStatus.NeedsRevision)
+                throw new InvalidOperationException(
+                    $"Cannot edit from {Status}. Content is frozen outside Draft or NeedsRevision.");
+
+            if (string.IsNullOrWhiteSpace(content))
+                throw new ArgumentException("Revision content is required.", nameof(content));
+
+            var revision = new StrategyRevision(
+                TenantId, Id, _revisions.Count + 1, content, origin, authorUserId);
+
+            _revisions.Add(revision);
+            return revision;
+        }
         public void SubmitForApproval()
         {
             if (Status != StrategyStatus.Draft && Status != StrategyStatus.NeedsRevision)
-                throw new InvalidOperationException($"Cannot submit from{Status}. Must be Draft or NeedsRevision");
+                throw new InvalidOperationException($"Cannot submit from {Status}. Must be Draft or NeedsRevision.");
             Status = StrategyStatus.PendingApproval;
         }
 
