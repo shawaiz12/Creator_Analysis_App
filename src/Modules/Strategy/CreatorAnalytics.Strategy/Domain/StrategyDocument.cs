@@ -24,6 +24,10 @@ namespace CreatorAnalytics.Strategy.Domain
 
         public IReadOnlyList<StrategyRevision> Revisions => _revisions;
 
+        private readonly List<StrategyReview> _reviews = new();
+
+        public IReadOnlyList<StrategyReview> Reviews => _reviews;
+
         public StrategyRevision? CurrentRevision =>
             _revisions.Count == 0 ? null : _revisions[^1];
 
@@ -53,23 +57,38 @@ namespace CreatorAnalytics.Strategy.Domain
             Status = StrategyStatus.PendingApproval;
         }
 
-        public void Approve()
+        public void Approve(Guid reviewerUserId, Guid revisionId)
         {
             if (Status != StrategyStatus.PendingApproval)
                 throw new InvalidOperationException($"Cannot approve from {Status}. Must be PendingApproval.");
 
+            EnsureReviewingCurrentRevision(revisionId);
+
+            _reviews.Add(new StrategyReview(
+                TenantId, Id, revisionId, reviewerUserId, ReviewDecision.Approved, null));
             Status = StrategyStatus.Approved;
         }
 
-        public void Reject(string reason)
+        public void Reject(Guid reviewerUserId, Guid revisionId, string reason)
         {
             if (Status != StrategyStatus.PendingApproval)
                 throw new InvalidOperationException($"Cannot reject from {Status}. Must be PendingApproval.");
 
+            EnsureReviewingCurrentRevision(revisionId);
+
             if (string.IsNullOrWhiteSpace(reason))
                 throw new ArgumentException("A rejection reason is mandatory.", nameof(reason));
 
+            _reviews.Add(new StrategyReview(
+                TenantId, Id, revisionId, reviewerUserId, ReviewDecision.Rejected, reason));
             Status = StrategyStatus.NeedsRevision;
+        }
+
+        private void EnsureReviewingCurrentRevision(Guid revisionId)
+        {
+            if (CurrentRevision is null || CurrentRevision.Id != revisionId)
+                throw new InvalidOperationException(
+                    "The strategy changed since it was opened. Review the latest revision.");
         }
 
         public void MarkImplemented()

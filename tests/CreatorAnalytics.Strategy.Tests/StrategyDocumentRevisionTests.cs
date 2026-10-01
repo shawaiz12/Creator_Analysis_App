@@ -66,7 +66,7 @@ public class StrategyDocumentRevisionTests
     {
         var document = NewDocument();
         document.AddContentAndSubmit();
-        document.Reject("Hook is weak.");
+        document.RejectCurrent("Hook is weak.");
 
         var revision = document.AddRevision("Stronger hook", RevisionOrigin.Human, Guid.NewGuid());
 

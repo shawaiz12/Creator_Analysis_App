@@ -9,4 +9,10 @@ public static class StrategyDocumentTestExtensions
         document.AddRevision("Draft content", RevisionOrigin.Ai, null);
         document.SubmitForApproval();
     }
+
+    public static void ApproveCurrent(this StrategyDocument document)
+    => document.Approve(Guid.NewGuid(), document.CurrentRevision?.Id ?? Guid.NewGuid());
+
+    public static void RejectCurrent(this StrategyDocument document, string reason)
+        => document.Reject(Guid.NewGuid(), document.CurrentRevision?.Id ?? Guid.NewGuid(), reason);
 }

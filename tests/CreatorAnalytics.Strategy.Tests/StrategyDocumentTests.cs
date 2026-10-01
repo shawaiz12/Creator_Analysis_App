@@ -24,7 +24,7 @@ namespace CreatorAnalytics.Strategy.Tests
             document.AddContentAndSubmit();
             Assert.Equal(StrategyStatus.PendingApproval, document.Status);
 
-            document.Approve();
+            document.ApproveCurrent();
             Assert.Equal(StrategyStatus.Approved, document.Status);
 
             document.MarkImplemented();
@@ -37,7 +37,7 @@ namespace CreatorAnalytics.Strategy.Tests
             var document = new StrategyDocument(_tenantId, _videoId);
             document.AddContentAndSubmit();
 
-            document.Reject("Pacing is too slow in the first 30 seconds.");
+            document.RejectCurrent("Pacing is too slow in the first 30 seconds.");
             Assert.Equal(StrategyStatus.NeedsRevision, document.Status);
         }
 
@@ -47,7 +47,7 @@ namespace CreatorAnalytics.Strategy.Tests
             var document = new StrategyDocument(_tenantId, _videoId);
 
             // Cannot approve a Draft directly
-            var exception = Assert.Throws<InvalidOperationException>(() => document.Approve());
+            var exception = Assert.Throws<InvalidOperationException>(() => document.ApproveCurrent());
             Assert.Contains("Cannot approve from Draft", exception.Message);
         }
 
@@ -58,7 +58,7 @@ namespace CreatorAnalytics.Strategy.Tests
             document.AddContentAndSubmit();
 
             // Passing an empty string should fail
-            Assert.Throws<ArgumentException>(() => document.Reject("   "));
+            Assert.Throws<ArgumentException>(() => document.RejectCurrent("   "));
         }
 
         [Fact]
@@ -66,7 +66,7 @@ namespace CreatorAnalytics.Strategy.Tests
         {
             var document = new StrategyDocument(_tenantId, _videoId);
             document.AddContentAndSubmit();
-            document.Reject("Hook is too weak.");
+            document.RejectCurrent("Hook is too weak.");
 
             document.AddContentAndSubmit();
 
@@ -78,9 +78,9 @@ namespace CreatorAnalytics.Strategy.Tests
         {
             var document = new StrategyDocument(_tenantId, _videoId);
             document.AddContentAndSubmit();
-            document.Approve();
+            document.ApproveCurrent();
 
-            Assert.Throws<InvalidOperationException>(() => document.Approve());
+            Assert.Throws<InvalidOperationException>(() => document.ApproveCurrent());
         }
 
         [Fact]
