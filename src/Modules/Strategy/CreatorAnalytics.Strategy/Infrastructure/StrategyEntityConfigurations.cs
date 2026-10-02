@@ -11,6 +11,8 @@ namespace CreatorAnalytics.Strategy.Infrastructure
             builder.ToTable("StrategyDocuments");
             builder.HasKey(x => x.Id);
 
+            builder.Property(x => x.Id).ValueGeneratedNever();
+
             builder.Property(x => x.RowVersion).IsRowVersion();
 
             builder.Property(x => x.Status)
@@ -42,6 +44,8 @@ namespace CreatorAnalytics.Strategy.Infrastructure
             builder.ToTable("StrategyRevisions");
             builder.HasKey(x => x.Id);
 
+            builder.Property(x => x.Id).ValueGeneratedNever();
+
             builder.Property(x => x.Content).IsRequired();
             builder.Property(x => x.Origin)
                 .HasConversion<string>()
@@ -59,6 +63,8 @@ namespace CreatorAnalytics.Strategy.Infrastructure
         {
             builder.ToTable("StrategyReviews");
             builder.HasKey(x => x.Id);
+
+            builder.Property(x => x.Id).ValueGeneratedNever();
 
             builder.Property(x => x.Decision)
                 .HasConversion<string>()

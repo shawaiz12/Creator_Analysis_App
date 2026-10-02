@@ -32,7 +32,7 @@ namespace CreatorAnalytics.Strategy.Domain
         public IReadOnlyList<StrategyReview> Reviews => _reviews;
 
         public StrategyRevision? CurrentRevision =>
-            _revisions.Count == 0 ? null : _revisions[^1];
+     _revisions.MaxBy(r => r.VersionNumber);
 
         public StrategyRevision AddRevision(string content, RevisionOrigin origin, Guid? authorUserId)
         {
@@ -44,7 +44,7 @@ namespace CreatorAnalytics.Strategy.Domain
                 throw new ArgumentException("Revision content is required.", nameof(content));
 
             var revision = new StrategyRevision(
-                TenantId, Id, _revisions.Count + 1, content, origin, authorUserId);
+                TenantId, Id, (CurrentRevision?.VersionNumber ?? 0) + 1, content, origin, authorUserId);
 
             _revisions.Add(revision);
             return revision;
