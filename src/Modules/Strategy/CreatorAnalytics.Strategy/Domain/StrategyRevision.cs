@@ -1,8 +1,10 @@
 ﻿
 
+using CreatorAnalytics.SharedKernel.Tenancy;
+
 namespace CreatorAnalytics.Strategy.Domain
 {
-    public class StrategyRevision
+    public class StrategyRevision : IMustHaveTenant
     {
         public Guid Id { get; private set; }
         public Guid TenantId { get; private set; }

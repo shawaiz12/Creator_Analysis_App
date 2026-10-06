@@ -1,6 +1,11 @@
+using CreatorAnalytics.SharedKernel.Tenancy;
 using CreatorAnalytics.Strategy;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddScoped<TenantContext>();
+builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
 
 builder.Services.AddStrategyModule(
     builder.Configuration.GetConnectionString("Default")

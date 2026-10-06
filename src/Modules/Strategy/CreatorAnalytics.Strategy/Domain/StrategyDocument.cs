@@ -1,10 +1,11 @@
-﻿using System;
+﻿using CreatorAnalytics.SharedKernel.Tenancy;
+using System;
 
 
 
 namespace CreatorAnalytics.Strategy.Domain
 {
-    public class StrategyDocument
+    public class StrategyDocument : IMustHaveTenant
     {
         public Guid Id { get; private set; }
         public Guid TenantId { get; private set; }

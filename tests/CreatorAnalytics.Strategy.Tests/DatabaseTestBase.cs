@@ -29,14 +29,14 @@ namespace CreatorAnalytics.Strategy.Tests
 
         }
 
-        protected StrategyDbContext NewContext()
+        protected StrategyDbContext NewContext(Guid? tenantId = null)
         {
             var options = new DbContextOptionsBuilder<StrategyDbContext>()
                 .UseSqlServer(_connectionString, sql =>
                     sql.MigrationsHistoryTable("__EFMigrationsHistory", StrategyDbContext.Schema))
                 .Options;
 
-            return new StrategyDbContext(options);
+            return new StrategyDbContext(options, new FixedTenantContext(tenantId));
         }
 
 

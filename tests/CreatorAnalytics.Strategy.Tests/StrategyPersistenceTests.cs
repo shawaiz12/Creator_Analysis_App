@@ -1,4 +1,4 @@
-﻿using CreatorAnalytics.Strategy.Domain;
+using CreatorAnalytics.Strategy.Domain;
 using CreatorAnalytics.Strategy.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -32,13 +32,13 @@ public class StrategyPersistenceTests : DatabaseTestBase
         document.SubmitForApproval();
         document.Approve(_reviewerId, document.CurrentRevision!.Id);
 
-        using (var write = NewContext())
+        using (var write = NewContext(_tenantId))
         {
             write.Documents.Add(document);
             write.SaveChanges();
         }
 
-        using var read = NewContext();
+        using var read = NewContext(_tenantId);
         var loaded = Load(read, document.Id);
 
         Assert.Equal(StrategyStatus.Approved, loaded.Status);
@@ -53,20 +53,20 @@ public class StrategyPersistenceTests : DatabaseTestBase
     public void A_Review_Added_To_A_Loaded_Document_Is_Saved()
     {
         var document = NewSubmittedDocument();
-        using (var setup = NewContext())
+        using (var setup = NewContext(_tenantId))
         {
             setup.Documents.Add(document);
             setup.SaveChanges();
         }
 
-        using (var work = NewContext())
+        using (var work = NewContext(_tenantId))
         {
             var loaded = Load(work, document.Id);
             loaded.Approve(_reviewerId, loaded.CurrentRevision!.Id);
             work.SaveChanges();
         }
 
-        using var check = NewContext();
+        using var check = NewContext(_tenantId);
         var reloaded = Load(check, document.Id);
         Assert.Equal(StrategyStatus.Approved, reloaded.Status);
         Assert.Single(reloaded.Reviews);
@@ -76,14 +76,14 @@ public class StrategyPersistenceTests : DatabaseTestBase
     public void Two_Admins_Deciding_At_Once_Cannot_Both_Win()
     {
         var document = NewSubmittedDocument();
-        using (var setup = NewContext())
+        using (var setup = NewContext(_tenantId))
         {
             setup.Documents.Add(document);
             setup.SaveChanges();
         }
 
-        using var adminA = NewContext();
-        using var adminB = NewContext();
+        using var adminA = NewContext(_tenantId);
+        using var adminB = NewContext(_tenantId);
         var docA = Load(adminA, document.Id);
         var docB = Load(adminB, document.Id);
 
@@ -93,7 +93,7 @@ public class StrategyPersistenceTests : DatabaseTestBase
         docB.Reject(Guid.NewGuid(), docB.CurrentRevision!.Id, "Weak hook.");
         Assert.Throws<DbUpdateConcurrencyException>(() => adminB.SaveChanges());
 
-        using var check = NewContext();
+        using var check = NewContext(_tenantId);
         var final = Load(check, document.Id);
         Assert.Equal(StrategyStatus.Approved, final.Status);
         Assert.Single(final.Reviews);

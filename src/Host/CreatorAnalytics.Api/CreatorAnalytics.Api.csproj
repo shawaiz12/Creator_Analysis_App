@@ -20,6 +20,7 @@
     <ProjectReference Include="..\..\Modules\Integration\CreatorAnalytics.Integration\CreatorAnalytics.Integration.csproj" />
     <ProjectReference Include="..\..\Modules\Strategy\CreatorAnalytics.Strategy\CreatorAnalytics.Strategy.csproj" />
     <ProjectReference Include="..\..\Modules\Audit\CreatorAnalytics.Audit\CreatorAnalytics.Audit.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\CreatorAnalytics.SharedKernel\CreatorAnalytics.SharedKernel.csproj" />
   </ItemGroup>
 
 </Project>
