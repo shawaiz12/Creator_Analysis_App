@@ -1,5 +1,7 @@
+using CreatorAnalytics.Identity.Infrastructure;
 using CreatorAnalytics.SharedKernel.Tenancy;
 using CreatorAnalytics.Strategy;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +12,11 @@ builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantCon
 builder.Services.AddStrategyModule(
     builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("Connection string 'Default' is missing."));
+
+builder.Services.AddDbContext<IdentityDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("Default"),
+        sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", IdentityDbContext.Schema)));
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
