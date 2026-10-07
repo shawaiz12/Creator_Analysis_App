@@ -7,6 +7,8 @@ using CreatorAnalytics.Strategy;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using CreatorAnalytics.Api.Endpoints;
+using CreatorAnalytics.Audit.Infrastructure;
+using CreatorAnalytics.Api.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +23,11 @@ builder.Services.AddDbContext<IdentityDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("Default"),
         sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", IdentityDbContext.Schema)));
+
+builder.Services.AddDbContext<AuditDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("Default"),
+        sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", AuditDbContext.Schema)));
 
 // Register the Identity module's access service
 builder.Services.AddScoped<ITenantAccessService, TenantAccessService>();
@@ -38,6 +45,7 @@ builder.Services.AddAuthorization();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddHostedService<OutboxProcessorBackgroundService>();
 
 var app = builder.Build();
 

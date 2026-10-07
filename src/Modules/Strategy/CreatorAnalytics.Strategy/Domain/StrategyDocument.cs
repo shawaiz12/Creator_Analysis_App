@@ -7,6 +7,9 @@ namespace CreatorAnalytics.Strategy.Domain
 {
     public class StrategyDocument : IMustHaveTenant
     {
+        private readonly List<object> _domainEvents = new();
+        public IReadOnlyCollection<object> DomainEvents => _domainEvents.AsReadOnly();
+        public void ClearDomainEvents() => _domainEvents.Clear();
         public Guid Id { get; private set; }
         public Guid TenantId { get; private set; }
         public Guid VideoId { get; private set; }
@@ -70,7 +73,10 @@ namespace CreatorAnalytics.Strategy.Domain
 
             _reviews.Add(new StrategyReview(
                 TenantId, Id, revisionId, reviewerUserId, ReviewDecision.Approved, null));
+
             Status = StrategyStatus.Approved;
+
+            _domainEvents.Add(new Events.StrategyApprovedEvent(Id, TenantId, reviewerUserId, revisionId, DateTime.UtcNow));
         }
 
         public void Reject(Guid reviewerUserId, Guid revisionId, string reason)

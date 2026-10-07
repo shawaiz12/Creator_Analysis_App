@@ -1,6 +1,7 @@
 ﻿using CreatorAnalytics.SharedKernel.Tenancy;
 using CreatorAnalytics.Strategy.Domain;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace CreatorAnalytics.Strategy.Infrastructure;
 
@@ -22,6 +23,7 @@ public class StrategyDbContext : DbContext
     public DbSet<StrategyDocument> Documents => Set<StrategyDocument>();
     public DbSet<StrategyRevision> Revisions => Set<StrategyRevision>();
     public DbSet<StrategyReview> Reviews => Set<StrategyReview>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,6 +37,7 @@ public class StrategyDbContext : DbContext
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
+        ProcessDomainEvents();
         EnsureNoCrossTenantWrites();
         return base.SaveChanges(acceptAllChangesOnSuccess);
     }
@@ -42,6 +45,7 @@ public class StrategyDbContext : DbContext
     public override Task<int> SaveChangesAsync(
         bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
     {
+        ProcessDomainEvents();
         EnsureNoCrossTenantWrites();
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
@@ -57,6 +61,27 @@ public class StrategyDbContext : DbContext
                 throw new InvalidOperationException(
                     $"Blocked a cross-tenant write on {entry.Metadata.ClrType.Name}.");
             }
+        }
+    }
+
+    private void ProcessDomainEvents()
+    {
+        var entitiesWithEvents = ChangeTracker.Entries<StrategyDocument>()
+            .Select(e => e.Entity)
+            .Where(e => e.DomainEvents.Any())
+            .ToList();
+
+        foreach (var entity in entitiesWithEvents)
+        {
+            foreach (var domainEvent in entity.DomainEvents)
+            {
+                var outboxMessage = new OutboxMessage(
+                    domainEvent.GetType().Name,
+                    JsonSerializer.Serialize(domainEvent));
+
+                OutboxMessages.Add(outboxMessage);
+            }
+            entity.ClearDomainEvents();
         }
     }
 }
