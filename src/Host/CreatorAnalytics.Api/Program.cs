@@ -1,10 +1,14 @@
+using CreatorAnalytics.Api.Middleware;
+using CreatorAnalytics.Identity.Contracts.Services;
 using CreatorAnalytics.Identity.Infrastructure;
+using CreatorAnalytics.Identity.Services;
 using CreatorAnalytics.SharedKernel.Tenancy;
 using CreatorAnalytics.Strategy;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using CreatorAnalytics.Api.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.AddScoped<TenantContext>();
 builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
@@ -17,6 +21,19 @@ builder.Services.AddDbContext<IdentityDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("Default"),
         sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", IdentityDbContext.Schema)));
+
+// Register the Identity module's access service
+builder.Services.AddScoped<ITenantAccessService, TenantAccessService>();
+
+// Configure JWT Bearer Authentication (Microsoft Entra ID setup)
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        // These will be loaded from appsettings.json / user-secrets later
+        options.Authority = builder.Configuration["Authentication:Authority"];
+        options.Audience = builder.Configuration["Authentication:Audience"];
+    });
+builder.Services.AddAuthorization();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -32,28 +49,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// Identity and Multi-tenancy Pipeline
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseMiddleware<TenantGatekeeperMiddleware>();
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+// Map module endpoints
+app.MapStrategyEndpoints();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

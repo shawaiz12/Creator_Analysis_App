@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CreatorAnalytics.Identity.Services;
 
-internal sealed class TenantAccessService : ITenantAccessService
+public sealed class TenantAccessService : ITenantAccessService
 {
     private readonly IdentityDbContext _context;
 
