@@ -92,6 +92,8 @@ namespace CreatorAnalytics.Strategy.Domain
             _reviews.Add(new StrategyReview(
                 TenantId, Id, revisionId, reviewerUserId, ReviewDecision.Rejected, reason));
             Status = StrategyStatus.NeedsRevision;
+            _domainEvents.Add(new Events.StrategyRejectedEvent(
+    Id, TenantId, reviewerUserId, revisionId, reason, DateTime.UtcNow));
         }
 
         private void EnsureReviewingCurrentRevision(Guid revisionId)

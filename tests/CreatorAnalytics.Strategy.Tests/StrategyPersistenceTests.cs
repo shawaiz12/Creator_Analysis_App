@@ -98,4 +98,53 @@ public class StrategyPersistenceTests : DatabaseTestBase
         Assert.Equal(StrategyStatus.Approved, final.Status);
         Assert.Single(final.Reviews);
     }
+
+    [Fact]
+    public void Approving_Writes_An_Outbox_Message_In_The_Same_Save()
+    {
+        var document = NewSubmittedDocument();
+        using (var setup = NewContext(_tenantId))
+        {
+            setup.Documents.Add(document);
+            setup.SaveChanges();
+        }
+
+        using (var work = NewContext(_tenantId))
+        {
+            var loaded = Load(work, document.Id);
+            loaded.Approve(_reviewerId, loaded.CurrentRevision!.Id);
+            work.SaveChanges();
+        }
+
+        using var check = NewContext(_tenantId);
+        var message = Assert.Single(check.OutboxMessages);
+        Assert.Equal("StrategyApprovedEvent", message.Type);
+        Assert.Null(message.ProcessedOnUtc);
+    }
+
+    [Fact]
+    public void A_Refused_Save_Leaves_No_Outbox_Message_Behind()
+    {
+        var document = NewSubmittedDocument();
+        using (var setup = NewContext(_tenantId))
+        {
+            setup.Documents.Add(document);
+            setup.SaveChanges();
+        }
+
+        using var adminA = NewContext(_tenantId);
+        using var adminB = NewContext(_tenantId);
+        var docA = Load(adminA, document.Id);
+        var docB = Load(adminB, document.Id);
+
+        docA.Approve(Guid.NewGuid(), docA.CurrentRevision!.Id);
+        adminA.SaveChanges();
+
+        docB.Reject(Guid.NewGuid(), docB.CurrentRevision!.Id, "Weak hook.");
+        Assert.Throws<DbUpdateConcurrencyException>(() => adminB.SaveChanges());
+
+        using var check = NewContext(_tenantId);
+        var message = Assert.Single(check.OutboxMessages);
+        Assert.Equal("StrategyApprovedEvent", message.Type);
+    }
 }
