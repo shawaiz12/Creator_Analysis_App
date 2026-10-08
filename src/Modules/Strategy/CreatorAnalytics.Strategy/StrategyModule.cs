@@ -13,6 +13,8 @@ public static class StrategyModule
      options.UseSqlServer(connectionString, sql =>
          sql.MigrationsHistoryTable("__EFMigrationsHistory", StrategyDbContext.Schema)));
 
+        
+
         return services;
     }
 }
