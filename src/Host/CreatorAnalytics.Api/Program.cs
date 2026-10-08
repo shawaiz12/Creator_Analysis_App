@@ -9,11 +9,14 @@ using Microsoft.EntityFrameworkCore;
 using CreatorAnalytics.Api.Endpoints;
 using CreatorAnalytics.Audit.Infrastructure;
 using CreatorAnalytics.Api.BackgroundServices;
+using CreatorAnalytics.SharedKernel.Users;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<TenantContext>();
 builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
+builder.Services.AddScoped<CurrentUser>();
+builder.Services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<CurrentUser>());
 
 builder.Services.AddStrategyModule(
     builder.Configuration.GetConnectionString("Default")

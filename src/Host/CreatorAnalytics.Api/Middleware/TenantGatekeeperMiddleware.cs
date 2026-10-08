@@ -1,8 +1,7 @@
-﻿using System;
-using System.Security.Claims;
-using System.Threading.Tasks;
+﻿using System.Security.Claims;
 using CreatorAnalytics.Identity.Contracts.Services;
 using CreatorAnalytics.SharedKernel.Tenancy;
+using CreatorAnalytics.SharedKernel.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
@@ -17,15 +16,25 @@ public class TenantGatekeeperMiddleware
         _next = next;
     }
 
-    // Scoped services (like ITenantAccessService and TenantContext) are injected into InvokeAsync
-    public async Task InvokeAsync(HttpContext context, ITenantAccessService accessService, TenantContext tenantContext)
+    public async Task InvokeAsync(
+        HttpContext context,
+        ITenantAccessService accessService,
+        TenantContext tenantContext,
+        CurrentUser currentUser)
     {
         var tenantRouteValue = context.GetRouteValue("tenantId")?.ToString();
 
-        // If there's no tenantId in the URL, this isn't a tenant-specific endpoint. Let it pass.
-        if (string.IsNullOrEmpty(tenantRouteValue) || !Guid.TryParse(tenantRouteValue, out var tenantId))
+        // No tenantId in the URL: not a tenant endpoint, let it pass.
+        if (string.IsNullOrEmpty(tenantRouteValue))
         {
             await _next(context);
+            return;
+        }
+
+        // A tenantId that is not a valid GUID can never belong to anyone.
+        if (!Guid.TryParse(tenantRouteValue, out var tenantId))
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
         }
 
@@ -35,7 +44,6 @@ public class TenantGatekeeperMiddleware
             return;
         }
 
-        // Microsoft Entra ID usually puts the user's unique ID in the Object Identifier claim or the 'sub' claim
         var externalUserId = context.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value
                              ?? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                              ?? context.User.FindFirst("sub")?.Value;
@@ -46,22 +54,20 @@ public class TenantGatekeeperMiddleware
             return;
         }
 
-        // Ask the Identity module if this user is a member of this tenant
-        var role = await accessService.GetUserRoleAsync(tenantId, externalUserId);
+        var access = await accessService.GetAccessAsync(tenantId, externalUserId);
 
-        if (role == null)
+        if (access is null)
         {
-            // The user is not a member. Return 404 Not Found to completely hide the tenant's existence.
+            // Not a member: 404 hides whether this tenant exists.
             context.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
         }
 
-        // Lock the tenant into the request context so EF Core Global Query Filters can use it
         tenantContext.Set(tenantId);
+        currentUser.Set(access.UserId);
 
-        // Add the role as a temporary claim for this specific request so standard [Authorize(Roles="Admin")] attributes work
         var identity = (ClaimsIdentity)context.User.Identity;
-        identity.AddClaim(new Claim(ClaimTypes.Role, role));
+        identity.AddClaim(new Claim(ClaimTypes.Role, access.Role));
 
         await _next(context);
     }

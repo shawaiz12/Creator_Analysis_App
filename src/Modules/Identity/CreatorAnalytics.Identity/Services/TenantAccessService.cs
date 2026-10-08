@@ -13,16 +13,18 @@ public sealed class TenantAccessService : ITenantAccessService
         _context = context;
     }
 
-    public async Task<string?> GetUserRoleAsync(Guid tenantId, string externalUserId)
+    public async Task<TenantAccess?> GetAccessAsync(Guid tenantId, string externalUserId)
     {
         var membership = await _context.TenantMemberships
             .AsNoTracking()
             .Join(_context.Users,
                 m => m.UserId,
                 u => u.Id,
-                (m, u) => new { m.TenantId, u.ExternalId, m.Role })
+                (m, u) => new { m.TenantId, u.ExternalId, m.UserId, m.Role })
             .SingleOrDefaultAsync(x => x.TenantId == tenantId && x.ExternalId == externalUserId);
 
-        return membership?.Role.ToString();
+        return membership is null
+            ? null
+            : new TenantAccess(membership.UserId, membership.Role.ToString());
     }
 }
