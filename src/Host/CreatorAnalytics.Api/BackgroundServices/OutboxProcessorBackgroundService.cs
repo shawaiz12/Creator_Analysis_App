@@ -45,53 +45,62 @@ public class OutboxProcessorBackgroundService : BackgroundService
 
     private async Task ProcessOutboxMessagesAsync(CancellationToken stoppingToken)
     {
-        // Create a new scope for dependency injection since BackgroundService is a singleton
-        using var scope = _serviceProvider.CreateScope();
+        List<Guid> pendingIds;
 
-        var strategyContext = scope.ServiceProvider.GetRequiredService<StrategyDbContext>();
-        var auditContext = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
-        var tenantContext = scope.ServiceProvider.GetRequiredService<TenantContext>();
-
-        // 1. Fetch unprocessed messages
-        var messages = await strategyContext.OutboxMessages
-            .Where(m => m.ProcessedOnUtc == null)
-            .Take(20)
-            .ToListAsync(stoppingToken);
-
-        if (!messages.Any()) return;
-
-        foreach (var message in messages)
+        using (var listScope = _serviceProvider.CreateScope())
         {
+            var context = listScope.ServiceProvider.GetRequiredService<StrategyDbContext>();
+            pendingIds = await context.OutboxMessages
+                .Where(m => m.ProcessedOnUtc == null)
+                .Select(m => m.Id)
+                .Take(20)
+                .ToListAsync(stoppingToken);
+        }
+
+        foreach (var messageId in pendingIds)
+        {
+            // One scope per message, so each message gets a fresh TenantContext.
+            using var scope = _serviceProvider.CreateScope();
+
             try
             {
-                // 2. Extract the TenantId from the JSON payload
-                using var document = JsonDocument.Parse(message.Content);
-                var tenantId = document.RootElement.GetProperty("TenantId").GetGuid();
-
-                // 3. Impersonate the tenant for this scoped execution
-                tenantContext.Set(tenantId);
-
-                // 4. Create the Audit Log entry
-                var auditLog = new AuditLog(
-                    tenantId: tenantId,
-                    processedMessageId: message.Id,
-                    eventType: message.Type,
-                    eventData: message.Content);
-
-                auditContext.AuditLogs.Add(auditLog);
-
-                // 5. Mark the original message as processed
-                message.MarkAsProcessed();
+                await ProcessOneAsync(scope.ServiceProvider, messageId, stoppingToken);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to process outbox message {MessageId}", message.Id);
-                message.MarkAsFailed(ex.Message);
+                _logger.LogError(ex, "Failed to process outbox message {MessageId}", messageId);
             }
         }
+    }
 
-        // 6. Commit the changes to both modules
-        await auditContext.SaveChangesAsync(stoppingToken);
+    private static async Task ProcessOneAsync(
+        IServiceProvider services, Guid messageId, CancellationToken stoppingToken)
+    {
+        var strategyContext = services.GetRequiredService<StrategyDbContext>();
+        var auditContext = services.GetRequiredService<AuditDbContext>();
+        var tenantContext = services.GetRequiredService<TenantContext>();
+
+        var message = await strategyContext.OutboxMessages
+            .SingleAsync(m => m.Id == messageId, stoppingToken);
+
+        using var json = JsonDocument.Parse(message.Content);
+        var tenantId = json.RootElement.GetProperty("TenantId").GetGuid();
+        tenantContext.Set(tenantId);
+
+        var alreadyAudited = await auditContext.AuditLogs
+            .AnyAsync(a => a.ProcessedMessageId == message.Id, stoppingToken);
+
+        if (!alreadyAudited)
+        {
+            auditContext.AuditLogs.Add(
+                new AuditLog(tenantId, message.Id, message.Type, message.Content));
+
+            // 1) Audit first. A crash after this line only means a harmless retry.
+            await auditContext.SaveChangesAsync(stoppingToken);
+        }
+
+        // 2) Only then mark the outbox message as done.
+        message.MarkAsProcessed();
         await strategyContext.SaveChangesAsync(stoppingToken);
     }
 }

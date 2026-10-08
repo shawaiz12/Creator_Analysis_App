@@ -59,8 +59,8 @@ app.UseHttpsRedirection();
 
 // Identity and Multi-tenancy Pipeline
 app.UseAuthentication();
-app.UseAuthorization();
 app.UseMiddleware<TenantGatekeeperMiddleware>();
+app.UseAuthorization();
 
 // Map module endpoints
 app.MapStrategyEndpoints();
