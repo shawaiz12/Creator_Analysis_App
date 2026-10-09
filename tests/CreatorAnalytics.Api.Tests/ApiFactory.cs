@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using CreatorAnalytics.Identity.Infrastructure;
 
 namespace CreatorAnalytics.Api.Tests;
 
@@ -42,6 +43,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 
         using var scope = Services.CreateScope();
         scope.ServiceProvider.GetRequiredService<StrategyDbContext>().Database.Migrate();
+        scope.ServiceProvider.GetRequiredService<IdentityDbContext>().Database.Migrate();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)

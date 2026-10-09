@@ -28,8 +28,12 @@ public sealed class TestAuthHandler : AuthenticationHandler<AuthenticationScheme
         }
 
         var identity = new ClaimsIdentity(
-            new[] { new Claim(ClaimTypes.NameIdentifier, externalId.ToString()) },
-            SchemeName);
+    new[]
+    {
+                new Claim(ClaimTypes.NameIdentifier, externalId.ToString()),
+                new Claim(ClaimTypes.Email, $"{externalId}@example.com")
+    },
+    SchemeName);
 
         var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), SchemeName);
         return Task.FromResult(AuthenticateResult.Success(ticket));

@@ -4,6 +4,7 @@ using CreatorAnalytics.SharedKernel.Tenancy;
 using CreatorAnalytics.SharedKernel.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using CreatorAnalytics.Api.Security;
 
 namespace CreatorAnalytics.Api.Middleware;
 
@@ -44,9 +45,7 @@ public class TenantGatekeeperMiddleware
             return;
         }
 
-        var externalUserId = context.User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value
-                             ?? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                             ?? context.User.FindFirst("sub")?.Value;
+        var externalUserId = context.User.GetExternalUserId();
 
         if (string.IsNullOrEmpty(externalUserId))
         {

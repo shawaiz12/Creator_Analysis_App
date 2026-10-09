@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<TenantContext>();
 builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
+builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<CurrentUser>();
 builder.Services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<CurrentUser>());
 
@@ -67,6 +68,7 @@ app.UseAuthorization();
 
 // Map module endpoints
 app.MapStrategyEndpoints();
+app.MapOnboardingEndpoints();
 
 app.Run();
 public partial class Program { }
