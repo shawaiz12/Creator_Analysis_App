@@ -69,3 +69,4 @@ app.UseAuthorization();
 app.MapStrategyEndpoints();
 
 app.Run();
+public partial class Program { }
