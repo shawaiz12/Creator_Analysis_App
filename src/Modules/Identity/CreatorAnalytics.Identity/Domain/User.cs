@@ -13,6 +13,8 @@ public class User
     {
         if (string.IsNullOrWhiteSpace(externalId))
             throw new ArgumentException("External identity provider ID is required.", nameof(externalId));
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email is required.", nameof(email));
 
         Id = Guid.NewGuid();
         ExternalId = externalId;

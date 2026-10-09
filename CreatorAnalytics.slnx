@@ -26,6 +26,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/CreatorAnalytics.Api.Tests/CreatorAnalytics.Api.Tests.csproj" />
     <Project Path="tests/CreatorAnalytics.ArchitectureTests/CreatorAnalytics.ArchitectureTests.csproj" />
+    <Project Path="tests/CreatorAnalytics.Identity.Tests/CreatorAnalytics.Identity.Tests.csproj" />
     <Project Path="tests/CreatorAnalytics.Strategy.Tests/CreatorAnalytics.Strategy.Tests.csproj" />
   </Folder>
 </Solution>

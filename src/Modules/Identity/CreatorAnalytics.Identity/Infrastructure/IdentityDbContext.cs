@@ -1,6 +1,6 @@
 ﻿using CreatorAnalytics.Identity.Domain;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
+
 
 namespace CreatorAnalytics.Identity.Infrastructure;
 
@@ -45,6 +45,9 @@ public class IdentityDbContext : DbContext
 
             // A user can only have one role per organization
             b.HasIndex(x => new { x.TenantId, x.UserId }).IsUnique();
+
+            b.HasOne<Organization>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<Invitation>(b =>
@@ -54,6 +57,7 @@ public class IdentityDbContext : DbContext
             b.Property(x => x.Role).HasConversion<string>().HasMaxLength(20).IsRequired();
             b.Property(x => x.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
             b.HasIndex(x => x.TenantId);
+            b.HasOne<Organization>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
