@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using CreatorAnalytics.Identity.Infrastructure;
+using CreatorAnalytics.Identity.Domain;
 
 namespace CreatorAnalytics.Api.Tests;
 
@@ -108,6 +109,23 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             .Include(d => d.Revisions)
             .Include(d => d.Reviews)
             .SingleAsync(d => d.Id == id);
+    }
+
+    public async Task<(Guid TenantId, Guid UserId)> SeedOrganizationWithAdminAsync(string adminExternalId)
+    {
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<IdentityDbContext>();
+
+        var organization = new Organization($"Org {Guid.NewGuid():N}");
+        var admin = new User(adminExternalId, $"{adminExternalId}@example.com");
+
+        context.Organizations.Add(organization);
+        context.Users.Add(admin);
+        context.TenantMemberships.Add(new TenantMembership(organization.Id, admin.Id, Role.Admin));
+        await context.SaveChangesAsync();
+
+        Access.AddMember(organization.Id, adminExternalId, admin.Id, "Admin");
+        return (organization.Id, admin.Id);
     }
 
     private bool _databaseDropped;

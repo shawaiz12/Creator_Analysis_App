@@ -18,6 +18,7 @@ builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantCon
 builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<CurrentUser>();
 builder.Services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<CurrentUser>());
+builder.Services.AddScoped<IInvitationService, InvitationService>();
 
 builder.Services.AddStrategyModule(
     builder.Configuration.GetConnectionString("Default")
@@ -69,6 +70,7 @@ app.UseAuthorization();
 // Map module endpoints
 app.MapStrategyEndpoints();
 app.MapOnboardingEndpoints();
+app.MapInvitationEndpoints();
 
 app.Run();
 public partial class Program { }
