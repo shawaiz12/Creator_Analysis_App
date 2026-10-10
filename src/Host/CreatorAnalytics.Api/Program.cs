@@ -50,6 +50,7 @@ builder.Services.AddAuthorization();
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddSingleton<OutboxDispatcher>();
 builder.Services.AddHostedService<OutboxProcessorBackgroundService>();
 
 var app = builder.Build();

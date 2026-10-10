@@ -14,6 +14,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using CreatorAnalytics.Identity.Infrastructure;
 using CreatorAnalytics.Identity.Domain;
+using CreatorAnalytics.Audit.Domain;
+using CreatorAnalytics.Audit.Infrastructure;
 
 namespace CreatorAnalytics.Api.Tests;
 
@@ -45,6 +47,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         using var scope = Services.CreateScope();
         scope.ServiceProvider.GetRequiredService<StrategyDbContext>().Database.Migrate();
         scope.ServiceProvider.GetRequiredService<IdentityDbContext>().Database.Migrate();
+        scope.ServiceProvider.GetRequiredService<AuditDbContext>().Database.Migrate();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -156,5 +159,44 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             $"BEGIN ALTER DATABASE [{database}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; " +
             $"DROP DATABASE [{database}]; END";
         command.ExecuteNonQuery();
+    }
+
+    public Task<int> RunOutboxAsync() =>
+    Services.GetRequiredService<OutboxDispatcher>().ProcessPendingAsync();
+
+    public async Task<List<AuditLog>> GetAuditLogsAsync(Guid tenantId)
+    {
+        using var scope = Services.CreateScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Set(tenantId);
+        var context = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
+
+        return await context.AuditLogs.AsNoTracking().ToListAsync();
+    }
+
+    public async Task<List<OutboxMessage>> GetOutboxMessagesAsync()
+    {
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<StrategyDbContext>();
+
+        return await context.OutboxMessages.AsNoTracking().ToListAsync();
+    }
+
+    public async Task AddOutboxMessageAsync(string type, string content)
+    {
+        using var scope = Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<StrategyDbContext>();
+
+        context.OutboxMessages.Add(new OutboxMessage(type, content));
+        await context.SaveChangesAsync();
+    }
+
+    public async Task AddAuditLogAsync(Guid tenantId, Guid messageId, string type, string data)
+    {
+        using var scope = Services.CreateScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Set(tenantId);
+        var context = scope.ServiceProvider.GetRequiredService<AuditDbContext>();
+
+        context.AuditLogs.Add(new AuditLog(tenantId, messageId, type, data));
+        await context.SaveChangesAsync();
     }
 }
