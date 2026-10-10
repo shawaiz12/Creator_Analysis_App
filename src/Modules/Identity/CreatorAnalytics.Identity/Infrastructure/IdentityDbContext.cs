@@ -57,7 +57,14 @@ public class IdentityDbContext : DbContext
             b.Property(x => x.Role).HasConversion<string>().HasMaxLength(20).IsRequired();
             b.Property(x => x.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
             b.HasIndex(x => x.TenantId);
+
             b.HasOne<Organization>().WithMany().HasForeignKey(x => x.TenantId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<User>().WithMany().HasForeignKey(x => x.InvitedByUserId).OnDelete(DeleteBehavior.Restrict);
+
+            // At most one open invitation per email per organization.
+            b.HasIndex(x => new { x.TenantId, x.Email })
+                .IsUnique()
+                .HasFilter("[Status] = 'Pending'");
         });
     }
 }
