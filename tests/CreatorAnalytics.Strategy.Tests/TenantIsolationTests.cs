@@ -1,4 +1,4 @@
-﻿using CreatorAnalytics.Strategy.Domain;
+using CreatorAnalytics.Strategy.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace CreatorAnalytics.Strategy.Tests;
@@ -12,7 +12,7 @@ public class TenantIsolationTests : DatabaseTestBase
     {
         var document = new StrategyDocument(tenantId, Guid.NewGuid());
         document.AddRevision("AI draft", RevisionOrigin.Ai, null);
-        document.SubmitForApproval();
+        document.SubmitForApproval(Guid.NewGuid());
         document.Approve(Guid.NewGuid(), document.CurrentRevision!.Id);
 
         using var context = NewContext(tenantId);

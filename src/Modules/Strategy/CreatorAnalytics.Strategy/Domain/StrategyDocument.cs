@@ -51,9 +51,13 @@ namespace CreatorAnalytics.Strategy.Domain
                 TenantId, Id, (CurrentRevision?.VersionNumber ?? 0) + 1, content, origin, authorUserId);
 
             _revisions.Add(revision);
+
+            _domainEvents.Add(new Events.StrategyRevisionAddedEvent(
+    Id, TenantId, revision.Id, revision.VersionNumber,
+    origin.ToString(), authorUserId, DateTime.UtcNow));
             return revision;
         }
-        public void SubmitForApproval()
+        public void SubmitForApproval(Guid submittedByUserId)
         {
             if (Status != StrategyStatus.Draft && Status != StrategyStatus.NeedsRevision)
                 throw new InvalidOperationException($"Cannot submit from {Status}. Must be Draft or NeedsRevision.");
@@ -62,6 +66,8 @@ namespace CreatorAnalytics.Strategy.Domain
                 throw new InvalidOperationException("Cannot submit a strategy with no content. Add a revision first.");
 
             Status = StrategyStatus.PendingApproval;
+            _domainEvents.Add(new Events.StrategySubmittedEvent(
+    Id, TenantId, submittedByUserId, CurrentRevision!.Id, DateTime.UtcNow));
         }
 
         public void Approve(Guid reviewerUserId, Guid revisionId)
@@ -103,12 +109,14 @@ namespace CreatorAnalytics.Strategy.Domain
                     "The strategy changed since it was opened. Review the latest revision.");
         }
 
-        public void MarkImplemented()
+        public void MarkImplemented(Guid implementedByUserId)
         {
             if (Status != StrategyStatus.Approved)
                 throw new InvalidOperationException($"Cannot implement from {Status}. Must be Approved.");
 
             Status = StrategyStatus.Implemented;
+            _domainEvents.Add(new Events.StrategyImplementedEvent(
+    Id, TenantId, implementedByUserId, DateTime.UtcNow));
         }
 
     }

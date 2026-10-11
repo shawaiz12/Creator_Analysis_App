@@ -10,6 +10,8 @@ using CreatorAnalytics.Api.Endpoints;
 using CreatorAnalytics.Audit.Infrastructure;
 using CreatorAnalytics.Api.BackgroundServices;
 using CreatorAnalytics.SharedKernel.Users;
+using CreatorAnalytics.Audit.Contracts.Services;
+using CreatorAnalytics.Audit.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,7 @@ builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<CurrentUser>();
 builder.Services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<CurrentUser>());
 builder.Services.AddScoped<IInvitationService, InvitationService>();
+builder.Services.AddScoped<IAuditQueryService, AuditQueryService>();
 
 builder.Services.AddStrategyModule(
     builder.Configuration.GetConnectionString("Default")
@@ -72,6 +75,9 @@ app.UseAuthorization();
 app.MapStrategyEndpoints();
 app.MapOnboardingEndpoints();
 app.MapInvitationEndpoints();
+
+
+app.MapAuditEndpoints();
 
 app.Run();
 public partial class Program { }

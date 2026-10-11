@@ -13,7 +13,8 @@ public class StrategyPersistenceTests : DatabaseTestBase
     {
         var document = new StrategyDocument(_tenantId, Guid.NewGuid());
         document.AddRevision("AI draft", RevisionOrigin.Ai, null);
-        document.SubmitForApproval();
+        document.SubmitForApproval(Guid.NewGuid());
+        document.ClearDomainEvents();
         return document;
     }
 
@@ -29,7 +30,7 @@ public class StrategyPersistenceTests : DatabaseTestBase
         var document = NewSubmittedDocument();
         document.Reject(_reviewerId, document.CurrentRevision!.Id, "Too slow.");
         document.AddRevision("Faster pacing", RevisionOrigin.Human, Guid.NewGuid());
-        document.SubmitForApproval();
+        document.SubmitForApproval(Guid.NewGuid());
         document.Approve(_reviewerId, document.CurrentRevision!.Id);
 
         using (var write = NewContext(_tenantId))

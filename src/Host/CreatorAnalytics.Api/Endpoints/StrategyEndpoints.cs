@@ -106,16 +106,20 @@ public static class StrategyEndpoints
 
         // Submit for approval: Admins and Strategists.
         group.MapPost("/{id:guid}/submit", async (
-            [FromRoute] Guid id,
-            [FromServices] StrategyDbContext context) =>
+     [FromRoute] Guid id,
+     [FromServices] ICurrentUser currentUser,
+     [FromServices] StrategyDbContext context) =>
         {
+            if (currentUser.UserId is not Guid submitterId)
+                return Results.Unauthorized();
+
             return await Guard(async () =>
             {
                 var document = await LoadAsync(context, id);
                 if (document is null)
                     return Results.NotFound();
 
-                document.SubmitForApproval();
+                document.SubmitForApproval(submitterId);
                 await context.SaveChangesAsync();
 
                 return Results.Ok(new { Status = document.Status.ToString() });
@@ -171,17 +175,21 @@ public static class StrategyEndpoints
         // Mark implemented: Editors and Admins. An Editor can only touch Approved strategies,
         // and for anything else it looks like the strategy does not exist.
         group.MapPost("/{id:guid}/implemented", async (
-            [FromRoute] Guid id,
-            ClaimsPrincipal user,
-            [FromServices] StrategyDbContext context) =>
+     [FromRoute] Guid id,
+     ClaimsPrincipal user,
+     [FromServices] ICurrentUser currentUser,
+     [FromServices] StrategyDbContext context) =>
         {
+            if (currentUser.UserId is not Guid implementerId)
+                return Results.Unauthorized();
+
             return await Guard(async () =>
             {
                 var document = await LoadAsync(context, id);
                 if (document is null || !CanView(user, document))
                     return Results.NotFound();
 
-                document.MarkImplemented();
+                document.MarkImplemented(implementerId);
                 await context.SaveChangesAsync();
 
                 return Results.Ok(new { Status = document.Status.ToString() });

@@ -1,4 +1,4 @@
-﻿using CreatorAnalytics.Api.BackgroundServices;
+using CreatorAnalytics.Api.BackgroundServices;
 using CreatorAnalytics.Identity.Contracts.Services;
 using CreatorAnalytics.SharedKernel.Tenancy;
 using CreatorAnalytics.Strategy.Domain;
@@ -95,7 +95,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 
         var document = new StrategyDocument(tenantId, Guid.NewGuid());
         document.AddRevision("AI draft", RevisionOrigin.Ai, null);
-        document.SubmitForApproval();
+        document.SubmitForApproval(Guid.NewGuid());
+
+        document.ClearDomainEvents();
 
         context.Documents.Add(document);
         await context.SaveChangesAsync();

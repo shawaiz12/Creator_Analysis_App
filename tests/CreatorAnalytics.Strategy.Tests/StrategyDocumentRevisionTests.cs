@@ -77,7 +77,7 @@ public class StrategyDocumentRevisionTests
     {
         var document = NewDocument();
 
-        var exception = Assert.Throws<InvalidOperationException>(() => document.SubmitForApproval());
+        var exception = Assert.Throws<InvalidOperationException>(() => document.SubmitForApproval(Guid.NewGuid()));
 
         Assert.Contains("no content", exception.Message);
     }

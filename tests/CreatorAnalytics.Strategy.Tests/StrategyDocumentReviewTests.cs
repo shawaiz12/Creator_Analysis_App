@@ -1,4 +1,4 @@
-﻿using CreatorAnalytics.Strategy.Domain;
+using CreatorAnalytics.Strategy.Domain;
 namespace CreatorAnalytics.Strategy.Tests
 {
     public class StrategyDocumentReviewTests
@@ -58,7 +58,7 @@ namespace CreatorAnalytics.Strategy.Tests
             var document = SubmittedDocument();
             document.Reject(_reviewerId, document.CurrentRevision!.Id, "Too slow.");
             document.AddRevision("Faster pacing", RevisionOrigin.Human, Guid.NewGuid());
-            document.SubmitForApproval();
+            document.SubmitForApproval(Guid.NewGuid());
 
             document.Approve(_reviewerId, document.CurrentRevision!.Id);
 

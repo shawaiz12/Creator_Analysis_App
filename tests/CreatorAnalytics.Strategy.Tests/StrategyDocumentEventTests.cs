@@ -12,6 +12,7 @@ public class StrategyDocumentEventTests
     {
         var document = new StrategyDocument(_tenantId, Guid.NewGuid());
         document.AddContentAndSubmit();
+        document.ClearDomainEvents();
         return document;
     }
 
@@ -45,6 +46,59 @@ public class StrategyDocumentEventTests
 
         Assert.Throws<InvalidOperationException>(
             () => document.Approve(_reviewerId, Guid.NewGuid()));
+
+        Assert.Empty(document.DomainEvents);
+    }
+
+    [Fact]
+    public void Adding_A_Revision_Raises_A_Revision_Added_Event()
+    {
+        var document = new StrategyDocument(_tenantId, Guid.NewGuid());
+        var author = Guid.NewGuid();
+
+        var revision = document.AddRevision("Draft", RevisionOrigin.Human, author);
+
+        var raised = Assert.IsType<StrategyRevisionAddedEvent>(Assert.Single(document.DomainEvents));
+        Assert.Equal(revision.Id, raised.RevisionId);
+        Assert.Equal(1, raised.VersionNumber);
+        Assert.Equal(author, raised.AuthorUserId);
+    }
+
+    [Fact]
+    public void Submitting_Raises_A_Submitted_Event_With_The_Submitter()
+    {
+        var document = new StrategyDocument(_tenantId, Guid.NewGuid());
+        document.AddRevision("Draft", RevisionOrigin.Ai, null);
+        document.ClearDomainEvents();
+        var submitter = Guid.NewGuid();
+
+        document.SubmitForApproval(submitter);
+
+        var raised = Assert.IsType<StrategySubmittedEvent>(Assert.Single(document.DomainEvents));
+        Assert.Equal(submitter, raised.SubmittedByUserId);
+        Assert.Equal(document.CurrentRevision!.Id, raised.RevisionId);
+    }
+
+    [Fact]
+    public void Marking_Implemented_Raises_An_Implemented_Event()
+    {
+        var document = SubmittedDocument();
+        document.Approve(_reviewerId, document.CurrentRevision!.Id);
+        document.ClearDomainEvents();
+        var editor = Guid.NewGuid();
+
+        document.MarkImplemented(editor);
+
+        var raised = Assert.IsType<StrategyImplementedEvent>(Assert.Single(document.DomainEvents));
+        Assert.Equal(editor, raised.ImplementedByUserId);
+    }
+
+    [Fact]
+    public void A_Refused_Submit_Raises_No_Event()
+    {
+        var document = new StrategyDocument(_tenantId, Guid.NewGuid());
+
+        Assert.Throws<InvalidOperationException>(() => document.SubmitForApproval(Guid.NewGuid()));
 
         Assert.Empty(document.DomainEvents);
     }

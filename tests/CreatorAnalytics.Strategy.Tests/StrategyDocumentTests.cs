@@ -27,7 +27,7 @@ namespace CreatorAnalytics.Strategy.Tests
             document.ApproveCurrent();
             Assert.Equal(StrategyStatus.Approved, document.Status);
 
-            document.MarkImplemented();
+            document.MarkImplemented(Guid.NewGuid());
             Assert.Equal(StrategyStatus.Implemented, document.Status);
         }
 
@@ -89,7 +89,7 @@ namespace CreatorAnalytics.Strategy.Tests
             var document = new StrategyDocument(_tenantId, _videoId);
             document.AddContentAndSubmit();
 
-            Assert.Throws<InvalidOperationException>(() => document.MarkImplemented());
+            Assert.Throws<InvalidOperationException>(() => document.MarkImplemented(Guid.NewGuid()));
         }
 
 
