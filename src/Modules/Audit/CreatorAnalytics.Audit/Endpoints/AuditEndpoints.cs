@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
-namespace CreatorAnalytics.Api.Endpoints;
+namespace CreatorAnalytics.Audit.Endpoints;
 
 public static class AuditEndpoints
 {

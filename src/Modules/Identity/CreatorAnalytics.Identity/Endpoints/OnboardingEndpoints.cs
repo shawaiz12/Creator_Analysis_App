@@ -1,19 +1,19 @@
 ﻿using System.Security.Claims;
-using CreatorAnalytics.Api.Security;
 using CreatorAnalytics.Identity.Contracts.Services;
+using CreatorAnalytics.SharedKernel.Security;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 
-namespace CreatorAnalytics.Api.Endpoints;
+namespace CreatorAnalytics.Identity.Endpoints;
 
 public sealed record CreateOrganizationRequest(string Name);
 
-public static class OnboardingEndpoints
+internal static class OnboardingEndpoints
 {
-    public static void MapOnboardingEndpoints(this IEndpointRouteBuilder app)
+    internal static void MapOnboardingEndpoints(this IEndpointRouteBuilder app)
     {
         // Outside the tenant route on purpose: a brand-new user has no tenant yet.
         app.MapPost("/api/onboarding/organizations", async (

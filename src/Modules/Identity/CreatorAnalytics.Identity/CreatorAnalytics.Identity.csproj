@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CreatorAnalytics.Identity.Contracts\CreatorAnalytics.Identity.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\CreatorAnalytics.SharedKernel\CreatorAnalytics.SharedKernel.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -14,5 +15,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
 
 </Project>

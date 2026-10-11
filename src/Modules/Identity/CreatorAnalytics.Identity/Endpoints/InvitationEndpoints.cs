@@ -1,19 +1,19 @@
 ﻿using System.Security.Claims;
-using CreatorAnalytics.Api.Security;
 using CreatorAnalytics.Identity.Contracts.Services;
+using CreatorAnalytics.SharedKernel.Security;
 using CreatorAnalytics.SharedKernel.Users;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 
-namespace CreatorAnalytics.Api.Endpoints;
+namespace CreatorAnalytics.Identity.Endpoints;
 
 public sealed record CreateInvitationRequest(string Email, string Role);
 
-public static class InvitationEndpoints
+internal static class InvitationEndpoints
 {
-    public static void MapInvitationEndpoints(this IEndpointRouteBuilder app)
+    internal static void MapInvitationEndpoints(this IEndpointRouteBuilder app)
     {
         // Managing invitations: Admins of the organization only.
         var group = app.MapGroup("/api/{tenantId}/invitations")

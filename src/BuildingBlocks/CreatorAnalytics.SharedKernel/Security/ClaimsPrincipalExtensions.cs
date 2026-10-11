@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace CreatorAnalytics.Api.Security;
+namespace CreatorAnalytics.SharedKernel.Security;
 
 public static class ClaimsPrincipalExtensions
 {

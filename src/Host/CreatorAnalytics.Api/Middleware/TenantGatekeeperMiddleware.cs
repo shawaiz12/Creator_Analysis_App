@@ -4,7 +4,7 @@ using CreatorAnalytics.SharedKernel.Tenancy;
 using CreatorAnalytics.SharedKernel.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using CreatorAnalytics.Api.Security;
+using CreatorAnalytics.SharedKernel.Security;
 
 namespace CreatorAnalytics.Api.Middleware;
 

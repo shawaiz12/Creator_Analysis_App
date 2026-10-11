@@ -1,10 +1,6 @@
-﻿using System.Text.Json;
-using CreatorAnalytics.Audit.Domain;
-using CreatorAnalytics.Audit.Infrastructure;
+﻿using CreatorAnalytics.Audit.Contracts.Services;
 using CreatorAnalytics.SharedKernel.Tenancy;
-using CreatorAnalytics.Strategy.Domain;
-using CreatorAnalytics.Strategy.Infrastructure;
-using Microsoft.EntityFrameworkCore;
+using CreatorAnalytics.Strategy.Contracts.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -26,19 +22,12 @@ public sealed class OutboxDispatcher
     /// <summary>Processes one batch and returns how many messages were handled successfully.</summary>
     public async Task<int> ProcessPendingAsync(CancellationToken cancellationToken = default)
     {
-        List<Guid> pendingIds;
+        IReadOnlyList<Guid> pendingIds;
 
         using (var listScope = _rootServices.CreateScope())
         {
-            var context = listScope.ServiceProvider.GetRequiredService<StrategyDbContext>();
-
-            // Messages that failed too many times are parked and no longer picked up.
-            pendingIds = await context.OutboxMessages
-                .Where(m => m.ProcessedOnUtc == null && m.Attempts < OutboxMessage.MaxAttempts)
-                .OrderBy(m => m.OccurredOnUtc)
-                .Select(m => m.Id)
-                .Take(BatchSize)
-                .ToListAsync(cancellationToken);
+            var outbox = listScope.ServiceProvider.GetRequiredService<IStrategyOutbox>();
+            pendingIds = await outbox.GetPendingIdsAsync(BatchSize, cancellationToken);
         }
 
         var handled = 0;
@@ -70,32 +59,19 @@ public sealed class OutboxDispatcher
     private static async Task ProcessOneAsync(
         IServiceProvider services, Guid messageId, CancellationToken cancellationToken)
     {
-        var strategyContext = services.GetRequiredService<StrategyDbContext>();
-        var auditContext = services.GetRequiredService<AuditDbContext>();
+        var outbox = services.GetRequiredService<IStrategyOutbox>();
+        var audit = services.GetRequiredService<IAuditWriter>();
         var tenantContext = services.GetRequiredService<TenantContext>();
 
-        var message = await strategyContext.OutboxMessages
-            .SingleAsync(m => m.Id == messageId, cancellationToken);
+        var item = await outbox.GetAsync(messageId, cancellationToken);
 
-        using var json = JsonDocument.Parse(message.Content);
-        var tenantId = json.RootElement.GetProperty("TenantId").GetGuid();
-        tenantContext.Set(tenantId);
+        tenantContext.Set(item.TenantId);
 
-        var alreadyAudited = await auditContext.AuditLogs
-            .AnyAsync(a => a.ProcessedMessageId == message.Id, cancellationToken);
-
-        if (!alreadyAudited)
-        {
-            auditContext.AuditLogs.Add(
-                new AuditLog(tenantId, message.Id, message.Type, message.Content));
-
-            // 1) Audit first. A crash after this line only means a harmless retry.
-            await auditContext.SaveChangesAsync(cancellationToken);
-        }
+        // 1) Audit first, and only once. A crash after this line only means a harmless retry.
+        await audit.WriteAsync(item.TenantId, item.MessageId, item.Type, item.Content, cancellationToken);
 
         // 2) Only then mark the outbox message as done.
-        message.MarkAsProcessed();
-        await strategyContext.SaveChangesAsync(cancellationToken);
+        await outbox.MarkProcessedAsync(messageId, cancellationToken);
     }
 
     private async Task RecordFailureAsync(
@@ -104,19 +80,14 @@ public sealed class OutboxDispatcher
         try
         {
             using var scope = _rootServices.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<StrategyDbContext>();
+            var outbox = scope.ServiceProvider.GetRequiredService<IStrategyOutbox>();
 
-            var message = await context.OutboxMessages
-                .SingleAsync(m => m.Id == messageId, cancellationToken);
+            var parked = await outbox.MarkFailedAsync(messageId, exception.Message, cancellationToken);
 
-            message.MarkAsFailed(exception.Message);
-            await context.SaveChangesAsync(cancellationToken);
-
-            if (message.Attempts >= OutboxMessage.MaxAttempts)
+            if (parked)
             {
                 _logger.LogCritical(
-                    "Outbox message {MessageId} failed {Attempts} times and is now parked.",
-                    messageId, message.Attempts);
+                    "Outbox message {MessageId} failed too many times and is now parked.", messageId);
             }
         }
         catch (Exception ex)

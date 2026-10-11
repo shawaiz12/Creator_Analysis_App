@@ -24,4 +24,8 @@
     <ProjectReference Include="..\..\BuildingBlocks\CreatorAnalytics.SharedKernel\CreatorAnalytics.SharedKernel.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Security\" />
+  </ItemGroup>
+
 </Project>
