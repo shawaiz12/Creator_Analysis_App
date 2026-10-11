@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Modules\Strategy\CreatorAnalytics.Strategy\CreatorAnalytics.Strategy.csproj" />
+    <ProjectReference Include="..\..\src\Host\CreatorAnalytics.Api\CreatorAnalytics.Api.csproj" />
   </ItemGroup>
 
 </Project>
