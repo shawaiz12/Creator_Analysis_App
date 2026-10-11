@@ -2,6 +2,7 @@
 using CreatorAnalytics.Audit.Domain;
 using CreatorAnalytics.Audit.Infrastructure;
 using CreatorAnalytics.SharedKernel.Tenancy;
+using CreatorAnalytics.Strategy.Domain;
 using CreatorAnalytics.Strategy.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,8 +31,10 @@ public sealed class OutboxDispatcher
         using (var listScope = _rootServices.CreateScope())
         {
             var context = listScope.ServiceProvider.GetRequiredService<StrategyDbContext>();
+
+            // Messages that failed too many times are parked and no longer picked up.
             pendingIds = await context.OutboxMessages
-                .Where(m => m.ProcessedOnUtc == null)
+                .Where(m => m.ProcessedOnUtc == null && m.Attempts < OutboxMessage.MaxAttempts)
                 .OrderBy(m => m.OccurredOnUtc)
                 .Select(m => m.Id)
                 .Take(BatchSize)
@@ -50,9 +53,14 @@ public sealed class OutboxDispatcher
                 await ProcessOneAsync(scope.ServiceProvider, messageId, cancellationToken);
                 handled++;
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to process outbox message {MessageId}", messageId);
+                await RecordFailureAsync(messageId, ex, cancellationToken);
             }
         }
 
@@ -88,5 +96,32 @@ public sealed class OutboxDispatcher
         // 2) Only then mark the outbox message as done.
         message.MarkAsProcessed();
         await strategyContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task RecordFailureAsync(
+        Guid messageId, Exception exception, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var scope = _rootServices.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<StrategyDbContext>();
+
+            var message = await context.OutboxMessages
+                .SingleAsync(m => m.Id == messageId, cancellationToken);
+
+            message.MarkAsFailed(exception.Message);
+            await context.SaveChangesAsync(cancellationToken);
+
+            if (message.Attempts >= OutboxMessage.MaxAttempts)
+            {
+                _logger.LogCritical(
+                    "Outbox message {MessageId} failed {Attempts} times and is now parked.",
+                    messageId, message.Attempts);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Could not record the failure of outbox message {MessageId}", messageId);
+        }
     }
 }

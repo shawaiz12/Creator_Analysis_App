@@ -1,5 +1,6 @@
 using CreatorAnalytics.Strategy.Domain;
 using Microsoft.EntityFrameworkCore;
+using CreatorAnalytics.SharedKernel.Tenancy;
 
 namespace CreatorAnalytics.Strategy.Tests;
 
@@ -62,7 +63,7 @@ public class TenantIsolationTests : DatabaseTestBase
         {
             context.Documents.Add(foreign);
 
-            var exception = Assert.Throws<InvalidOperationException>(() => context.SaveChanges());
+            var exception = Assert.Throws<TenantViolationException>(() => context.SaveChanges());
             Assert.Contains("cross-tenant", exception.Message);
         }
 

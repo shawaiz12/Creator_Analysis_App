@@ -61,8 +61,8 @@ public class AuditDbContext : DbContext
         {
             if (entry.Entity.TenantId != tenantId)
             {
-                throw new InvalidOperationException(
-                    $"Audit write violation: Entity belongs to tenant {entry.Entity.TenantId}, but request context is {tenantId}");
+                throw new TenantViolationException(
+                    $"Blocked a cross-tenant write: entity belongs to {entry.Entity.TenantId}, current tenant is {tenantId}.");
             }
         }
     }

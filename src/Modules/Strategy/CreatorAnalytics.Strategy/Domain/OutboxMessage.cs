@@ -4,6 +4,7 @@ namespace CreatorAnalytics.Strategy.Domain;
 
 public class OutboxMessage
 {
+    public const int MaxAttempts = 5;
     public Guid Id { get; private set; }
 
     // Identifies what happened (e.g., "StrategyApproved", "StrategyRejected")
@@ -15,6 +16,7 @@ public class OutboxMessage
     public DateTime OccurredOnUtc { get; private set; }
     public DateTime? ProcessedOnUtc { get; private set; }
     public string? Error { get; private set; }
+    public int Attempts { get; private set; }
 
     public OutboxMessage(string type, string content)
     {
@@ -36,6 +38,7 @@ public class OutboxMessage
 
     public void MarkAsFailed(string error)
     {
-        Error = error;
+        Attempts++;
+        Error = error.Length > 1000 ? error[..1000] : error;
     }
 }

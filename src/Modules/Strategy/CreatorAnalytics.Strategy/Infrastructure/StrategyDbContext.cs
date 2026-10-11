@@ -58,7 +58,7 @@ public class StrategyDbContext : DbContext
 
             if (isWrite && entry.Entity.TenantId != CurrentTenantId)
             {
-                throw new InvalidOperationException(
+                throw new TenantViolationException(
                     $"Blocked a cross-tenant write on {entry.Metadata.ClrType.Name}.");
             }
         }
