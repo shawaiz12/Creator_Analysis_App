@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 
-namespace CreatorAnalytics.Api.Endpoints;
+namespace CreatorAnalytics.Strategy.Endpoints;
 
 public sealed record AddRevisionRequest(string Content);
 
@@ -23,9 +23,15 @@ public sealed record ReviewDto(
     Guid Id, Guid RevisionId, Guid ReviewerUserId, string Decision, string? Reason, DateTime ReviewedAtUtc);
 
 public sealed record StrategyDto(
-    Guid Id, Guid VideoId, string Status, RevisionDto? CurrentRevision, IReadOnlyList<ReviewDto> Reviews);
+    Guid Id,
+    Guid VideoId,
+    string Status,
+    DateTime CreatedAtUtc,
+    RevisionDto? CurrentRevision,
+    IReadOnlyList<ReviewDto> Reviews);
 
-public sealed record StrategySummaryDto(Guid Id, Guid VideoId, string Status, int RevisionCount);
+public sealed record StrategySummaryDto(
+    Guid Id, Guid VideoId, string Status, DateTime CreatedAtUtc, int RevisionCount);
 
 public static class StrategyEndpoints
 {
@@ -48,7 +54,7 @@ public static class StrategyEndpoints
                 new { DocumentId = document.Id });
         }).RequireAuthorization(policy => policy.RequireRole("Admin", "Strategist"));
 
-        // List: every member. Editors only see Approved or Implemented strategies.
+        // List: every member, newest first. Editors only see Approved or Implemented strategies.
         group.MapGet("/", async (ClaimsPrincipal user, [FromServices] StrategyDbContext context) =>
         {
             var query = context.Documents.AsNoTracking();
@@ -60,11 +66,12 @@ public static class StrategyEndpoints
             }
 
             var rows = await query
-                .Select(d => new { d.Id, d.VideoId, d.Status, RevisionCount = d.Revisions.Count() })
+                .OrderByDescending(d => d.CreatedAtUtc)
+                .Select(d => new { d.Id, d.VideoId, d.Status, d.CreatedAtUtc, RevisionCount = d.Revisions.Count() })
                 .ToListAsync();
 
             return Results.Ok(rows.Select(r =>
-                new StrategySummaryDto(r.Id, r.VideoId, r.Status.ToString(), r.RevisionCount)));
+                new StrategySummaryDto(r.Id, r.VideoId, r.Status.ToString(), r.CreatedAtUtc, r.RevisionCount)));
         });
 
         // Get one: every member, with the same Editor restriction.
@@ -106,9 +113,9 @@ public static class StrategyEndpoints
 
         // Submit for approval: Admins and Strategists.
         group.MapPost("/{id:guid}/submit", async (
-     [FromRoute] Guid id,
-     [FromServices] ICurrentUser currentUser,
-     [FromServices] StrategyDbContext context) =>
+            [FromRoute] Guid id,
+            [FromServices] ICurrentUser currentUser,
+            [FromServices] StrategyDbContext context) =>
         {
             if (currentUser.UserId is not Guid submitterId)
                 return Results.Unauthorized();
@@ -175,10 +182,10 @@ public static class StrategyEndpoints
         // Mark implemented: Editors and Admins. An Editor can only touch Approved strategies,
         // and for anything else it looks like the strategy does not exist.
         group.MapPost("/{id:guid}/implemented", async (
-     [FromRoute] Guid id,
-     ClaimsPrincipal user,
-     [FromServices] ICurrentUser currentUser,
-     [FromServices] StrategyDbContext context) =>
+            [FromRoute] Guid id,
+            ClaimsPrincipal user,
+            [FromServices] ICurrentUser currentUser,
+            [FromServices] StrategyDbContext context) =>
         {
             if (currentUser.UserId is not Guid implementerId)
                 return Results.Unauthorized();
@@ -218,10 +225,12 @@ public static class StrategyEndpoints
         new(d.Id,
             d.VideoId,
             d.Status.ToString(),
+            d.CreatedAtUtc,
             d.CurrentRevision is null ? null : ToDto(d.CurrentRevision),
             d.Reviews.OrderBy(r => r.ReviewedAtUtc).Select(ToDto).ToList());
 
     // Turns expected failures into proper HTTP answers instead of 500 errors.
+    // TenantViolationException is deliberately NOT caught: that is a bug or an attack.
     private static async Task<IResult> Guard(Func<Task<IResult>> action)
     {
         try

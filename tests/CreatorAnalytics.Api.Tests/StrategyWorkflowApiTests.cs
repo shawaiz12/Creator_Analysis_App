@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
-using CreatorAnalytics.Api.Endpoints;
+using CreatorAnalytics.Strategy.Endpoints;
 
 namespace CreatorAnalytics.Api.Tests;
 
@@ -114,5 +114,21 @@ public class StrategyWorkflowApiTests : IClassFixture<ApiFactory>
             $"{BaseUrl}/{document.Id}/revisions", new { content = "Late edit" });
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task The_List_Shows_The_Newest_Strategy_First()
+    {
+        using var strategist = _factory.ClientFor("strategist-w");
+
+        var first = await strategist.PostAsync(BaseUrl, null);
+        var firstId = (await first.Content.ReadFromJsonAsync<CreatedResponse>())!.DocumentId;
+        await Task.Delay(50);
+        var second = await strategist.PostAsync(BaseUrl, null);
+        var secondId = (await second.Content.ReadFromJsonAsync<CreatedResponse>())!.DocumentId;
+
+        var list = await strategist.GetFromJsonAsync<List<StrategySummaryDto>>(BaseUrl);
+
+        Assert.Equal(new[] { secondId, firstId }, list!.Select(s => s.Id).ToArray());
     }
 }

@@ -14,6 +14,7 @@ namespace CreatorAnalytics.Strategy.Domain
         public Guid TenantId { get; private set; }
         public Guid VideoId { get; private set; }
         public StrategyStatus Status { get; private set; }
+        public DateTime CreatedAtUtc { get; private set; }
 
         public byte[] RowVersion { get; private set; } = Array.Empty<byte>();
 
@@ -23,6 +24,7 @@ namespace CreatorAnalytics.Strategy.Domain
             TenantId = tenantId;
             VideoId = videoId;
             Status = StrategyStatus.Draft;
+            CreatedAtUtc = DateTime.UtcNow;
         }
         private StrategyDocument() { }
 

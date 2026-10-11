@@ -12,6 +12,7 @@ using CreatorAnalytics.Api.BackgroundServices;
 using CreatorAnalytics.SharedKernel.Users;
 using CreatorAnalytics.Audit.Contracts.Services;
 using CreatorAnalytics.Audit.Services;
+using CreatorAnalytics.Strategy.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -148,4 +148,19 @@ public class StrategyPersistenceTests : DatabaseTestBase
         var message = Assert.Single(check.OutboxMessages);
         Assert.Equal("StrategyApprovedEvent", message.Type);
     }
+    [Fact]
+    public void The_Creation_Time_Survives_A_Round_Trip()
+    {
+        var document = NewSubmittedDocument();
+        using (var write = NewContext(_tenantId))
+        {
+            write.Documents.Add(document);
+            write.SaveChanges();
+        }
+
+        using var read = NewContext(_tenantId);
+        var loaded = Load(read, document.Id);
+
+        Assert.Equal(document.CreatedAtUtc, loaded.CreatedAtUtc);
+    }
 }
