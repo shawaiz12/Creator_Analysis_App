@@ -4,6 +4,7 @@
     <ProjectReference Include="..\..\Integration\CreatorAnalytics.Integration.Contracts\CreatorAnalytics.Integration.Contracts.csproj" />
     <ProjectReference Include="..\CreatorAnalytics.Strategy.Contracts\CreatorAnalytics.Strategy.Contracts.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\CreatorAnalytics.SharedKernel\CreatorAnalytics.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Identity\CreatorAnalytics.Identity\CreatorAnalytics.Identity.csproj" />
   </ItemGroup>
 
   <ItemGroup>
