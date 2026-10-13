@@ -23,3 +23,10 @@ platform owner, and Admins must be able to add teammates safely.
 - The email check is only as trustworthy as the email claim in the sign-in
   token, so the real Microsoft Entra configuration must use a verified claim.
 - No emails are sent yet. The Admin shares the invitation id manually.
+
+- Update after the first real Microsoft Entra run: the signed-in user is identified by the
+  stable `oid` claim (with `sub` as a fallback). The email used for invitations comes from
+  the `email` claim when present, otherwise from `preferred_username`. Microsoft documents
+  `preferred_username` as changeable, so this is acceptable only while every user comes
+  from our own tenant. Before real customers, switch to a verified email claim or to
+  invitation links that carry a secret.

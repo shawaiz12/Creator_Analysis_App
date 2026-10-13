@@ -3,10 +3,12 @@ using System.Net.Http.Json;
 using CreatorAnalytics.Identity.Infrastructure;
 using CreatorAnalytics.Identity.Services;
 using Microsoft.Extensions.DependencyInjection;
+using CreatorAnalytics.Identity.Contracts.Services;
 
 namespace CreatorAnalytics.Api.Tests;
 
 public sealed record OrganizationCreatedResponse(Guid OrganizationId);
+public sealed record MeResponse(string? Email, List<MembershipInfo> Organizations);
 
 public class OnboardingApiTests : IClassFixture<ApiFactory>
 {
@@ -55,5 +57,32 @@ public class OnboardingApiTests : IClassFixture<ApiFactory>
         var response = await client.PostAsJsonAsync("/api/onboarding/organizations", new { name = "  " });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Me_Requires_Sign_In()
+    {
+        using var anonymous = _factory.ClientFor(null);
+
+        var response = await anonymous.GetAsync("/api/me");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Me_Lists_The_Organization_Created_By_Onboarding()
+    {
+        using var client = _factory.ClientFor("me-ext");
+        var created = await client.PostAsJsonAsync(
+            "/api/onboarding/organizations", new { name = "Me Studio" });
+        var organization = (await created.Content.ReadFromJsonAsync<OrganizationCreatedResponse>())!;
+
+        var me = await client.GetFromJsonAsync<MeResponse>("/api/me");
+
+        var membership = Assert.Single(me!.Organizations);
+        Assert.Equal(organization.OrganizationId, membership.OrganizationId);
+        Assert.Equal("Me Studio", membership.OrganizationName);
+        Assert.Equal("Admin", membership.Role);
+        Assert.Equal("me-ext@example.com", me.Email);
     }
 }

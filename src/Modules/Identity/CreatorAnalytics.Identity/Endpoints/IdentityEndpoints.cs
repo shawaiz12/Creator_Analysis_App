@@ -8,5 +8,6 @@ public static class IdentityEndpoints
     {
         app.MapOnboardingEndpoints();
         app.MapInvitationEndpoints();
+        app.MapMeEndpoints();
     }
 }

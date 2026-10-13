@@ -19,10 +19,13 @@ Last updated: <put today's date here>
   parks a message after 5 failed attempts) and an Admin-only read endpoint.
 - **Rules enforced by the build:** modules only use each other's Contracts; the Api host
   never touches module internals; no `IgnoreQueryFilters` or raw SQL in the source.
+  **Identity:** \GET /api/me` lists the signed-in user’s organizations and roles.
 
 ## Not done yet
 
-1. Real Microsoft Entra sign-in has never been run (every test uses a fake sign-in).
+1. ~~Real Microsoft Entra sign-in~~ verified by hand end to end (two tenant users, device
+   login, organization created, invitation accepted, strategy approved, audit trail read).
+   Automated tests still use a fake sign-in.
 2. Integration module: YouTube OAuth, scheduled ingestion, real video ids.
 3. AI insights: `IInsightGenerator`, background worker, rejection reasons as context.
 4. Identity actions (invitations, joining) are not in the audit trail yet.
