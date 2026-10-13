@@ -9,6 +9,7 @@ using CreatorAnalytics.SharedKernel.Users;
 using CreatorAnalytics.Strategy;
 using CreatorAnalytics.Strategy.Endpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using CreatorAnalytics.Integration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +26,7 @@ var connectionString = builder.Configuration.GetConnectionString("Default")
 builder.Services.AddStrategyModule(connectionString);
 builder.Services.AddIdentityModule(connectionString);
 builder.Services.AddAuditModule(connectionString);
-
+builder.Services.AddIntegrationModule(connectionString);
 // JWT bearer authentication (Microsoft Entra ID).
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

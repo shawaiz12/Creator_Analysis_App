@@ -12,6 +12,8 @@ public class HostBoundaryTests
     [InlineData("CreatorAnalytics.Identity.Infrastructure")]
     [InlineData("CreatorAnalytics.Audit.Domain")]
     [InlineData("CreatorAnalytics.Audit.Infrastructure")]
+    [InlineData("CreatorAnalytics.Integration.Domain")]
+    [InlineData("CreatorAnalytics.Integration.Infrastructure")]
     public void The_Api_Host_Does_Not_Touch_Module_Internals(string moduleInternalNamespace)
     {
         var result = Types
