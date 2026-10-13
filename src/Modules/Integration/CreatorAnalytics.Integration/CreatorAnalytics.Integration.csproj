@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CreatorAnalytics.Integration.Contracts\CreatorAnalytics.Integration.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\CreatorAnalytics.SharedKernel\CreatorAnalytics.SharedKernel.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
