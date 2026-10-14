@@ -21,16 +21,24 @@ Last updated: <put today's date here>
   never touches module internals; no `IgnoreQueryFilters` or raw SQL in the source.
   **Identity:** \GET /api/me` lists the signed-in user’s organizations and roles.
 
+  - **Integration module (in progress):** channel connections, videos and 100-point retention
+  snapshots with tenant isolation; a sync service that inserts or updates by YouTube video
+  id, stores retention history, and flags connections that need to reconnect. Runs against
+  a fake YouTube client for now.
+
 ## Not done yet
+
+
 
 1. ~~Real Microsoft Entra sign-in~~ verified by hand end to end (two tenant users, device
    login, organization created, invitation accepted, strategy approved, audit trail read).
    Automated tests still use a fake sign-in.
-2. Integration module: YouTube OAuth, scheduled ingestion, real video ids.
+2. 2. Integration module: endpoints, scheduled sync, real Google OAuth and client.
 3. AI insights: `IInsightGenerator`, background worker, rejection reasons as context.
 4. Identity actions (invitations, joining) are not in the audit trail yet.
 5. No CI pipeline, health checks, rate limiting, deployment, or user interface.
 6. Planned last: extract the AI part into a stateless FastAPI service.
+
 
 ## Run it
 
