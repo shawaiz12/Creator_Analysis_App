@@ -10,6 +10,7 @@ using CreatorAnalytics.Strategy;
 using CreatorAnalytics.Strategy.Endpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using CreatorAnalytics.Integration;
+using CreatorAnalytics.Integration.Endpoints;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +59,7 @@ app.UseAuthorization();
 app.MapStrategyEndpoints();
 app.MapIdentityEndpoints();
 app.MapAuditEndpoints();
+app.MapIntegrationEndpoints();
 
 app.Run();
 

@@ -16,6 +16,8 @@ using CreatorAnalytics.Identity.Infrastructure;
 using CreatorAnalytics.Identity.Domain;
 using CreatorAnalytics.Audit.Domain;
 using CreatorAnalytics.Audit.Infrastructure;
+using CreatorAnalytics.Integration.Domain;
+using CreatorAnalytics.Integration.Infrastructure;
 
 namespace CreatorAnalytics.Api.Tests;
 
@@ -48,6 +50,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         scope.ServiceProvider.GetRequiredService<StrategyDbContext>().Database.Migrate();
         scope.ServiceProvider.GetRequiredService<IdentityDbContext>().Database.Migrate();
         scope.ServiceProvider.GetRequiredService<AuditDbContext>().Database.Migrate();
+        scope.ServiceProvider.GetRequiredService<IntegrationDbContext>().Database.Migrate();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -200,5 +203,25 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 
         context.AuditLogs.Add(new AuditLog(tenantId, messageId, type, data));
         await context.SaveChangesAsync();
+    }
+
+    public async Task<Guid> SeedVideoAsync(Guid tenantId)
+    {
+        using var scope = Services.CreateScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Set(tenantId);
+        var context = scope.ServiceProvider.GetRequiredService<IntegrationDbContext>();
+
+        var connection = new ChannelConnection(
+            tenantId, $"UC-{Guid.NewGuid():N}", "Seed channel", Guid.NewGuid(), DateTime.UtcNow);
+        context.ChannelConnections.Add(connection);
+        await context.SaveChangesAsync();
+
+        var video = new Video(
+            tenantId, connection.Id, $"seed-{Guid.NewGuid().ToString("N")[..16]}", "Seed video",
+            DateTime.UtcNow.AddDays(-1), 600, DateTime.UtcNow);
+        context.Videos.Add(video);
+        await context.SaveChangesAsync();
+
+        return video.Id;
     }
 }
