@@ -18,6 +18,7 @@ using CreatorAnalytics.Audit.Domain;
 using CreatorAnalytics.Audit.Infrastructure;
 using CreatorAnalytics.Integration.Domain;
 using CreatorAnalytics.Integration.Infrastructure;
+using CreatorAnalytics.Integration.Services;
 
 namespace CreatorAnalytics.Api.Tests;
 
@@ -62,6 +63,11 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
                 d => d.ImplementationType == typeof(OutboxProcessorBackgroundService));
             if (hosted is not null)
                 services.Remove(hosted);
+
+            var syncTimer = services.SingleOrDefault(
+    d => d.ImplementationType == typeof(ChannelSyncBackgroundService));
+            if (syncTimer is not null)
+                services.Remove(syncTimer);
 
             // Fake sign-in instead of Microsoft Entra ID.
             services.AddAuthentication(options =>

@@ -5,6 +5,7 @@ using CreatorAnalytics.Integration.Services;
 using CreatorAnalytics.Integration.YouTube;
 using CreatorAnalytics.Integration.Contracts.Services;
 
+
 namespace CreatorAnalytics.Integration;
 
 public static class IntegrationModule
@@ -21,6 +22,8 @@ public static class IntegrationModule
         services.AddScoped<ChannelSyncService>();
 
         services.AddScoped<IVideoAnalyticsQuery, VideoAnalyticsQuery>();
+        services.AddSingleton<ChannelSyncDispatcher>();
+        services.AddHostedService<ChannelSyncBackgroundService>();
 
         return services;
     }

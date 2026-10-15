@@ -9,6 +9,7 @@ public sealed class StubYouTubeClient : IYouTubeClient
     public List<YouTubeVideoInfo> Videos { get; } = new();
 
     public Exception? ThrowOnList { get; set; }
+    public string? FailOnlyForChannel { get; set; }
 
     public int ListCalls { get; private set; }
 
@@ -17,8 +18,9 @@ public sealed class StubYouTubeClient : IYouTubeClient
     {
         ListCalls++;
 
-        if (ThrowOnList is not null)
+        if (ThrowOnList is not null && (FailOnlyForChannel is null || FailOnlyForChannel == channelId))
             throw ThrowOnList;
+
 
         return Task.FromResult<IReadOnlyList<YouTubeVideoInfo>>(Videos.ToList());
     }

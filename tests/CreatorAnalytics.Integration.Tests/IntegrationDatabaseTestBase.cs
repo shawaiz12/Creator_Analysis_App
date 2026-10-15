@@ -2,6 +2,11 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using CreatorAnalytics.Identity.Contracts.Services;
+using CreatorAnalytics.Integration.Services;
+using CreatorAnalytics.Integration.YouTube;
+using CreatorAnalytics.SharedKernel.Tenancy;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CreatorAnalytics.Integration.Tests;
 
@@ -35,6 +40,24 @@ public abstract class IntegrationDatabaseTestBase : IDisposable
             .Options;
 
         return new IntegrationDbContext(options, new FixedTenantContext(tenantId));
+    }
+
+    protected ServiceProvider BuildProvider(IEnumerable<Guid> tenantIds, IYouTubeClient client)
+    {
+        var services = new ServiceCollection();
+
+        services.AddLogging();
+        services.AddScoped<TenantContext>();
+        services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
+        services.AddDbContext<IntegrationDbContext>(options =>
+            options.UseSqlServer(_connectionString, sql =>
+                sql.MigrationsHistoryTable("__EFMigrationsHistory", IntegrationDbContext.Schema)));
+        services.AddSingleton(client);
+        services.AddScoped<ChannelSyncService>();
+        services.AddSingleton<IOrganizationDirectory>(new FixedOrganizationDirectory(tenantIds));
+        services.AddSingleton<ChannelSyncDispatcher>();
+
+        return services.BuildServiceProvider();
     }
 
     public void Dispose()

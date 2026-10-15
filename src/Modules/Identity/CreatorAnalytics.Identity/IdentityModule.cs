@@ -19,6 +19,7 @@ public static class IdentityModule
         services.AddScoped<IOnboardingService, OnboardingService>();
         services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<IMembershipQueryService, MembershipQueryService>();
+        services.AddScoped<IOrganizationDirectory, OrganizationDirectory>();
 
         return services;
     }

@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CreatorAnalytics.Integration.Contracts\CreatorAnalytics.Integration.Contracts.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\CreatorAnalytics.SharedKernel\CreatorAnalytics.SharedKernel.csproj" />
+    <ProjectReference Include="..\..\Identity\CreatorAnalytics.Identity.Contracts\CreatorAnalytics.Identity.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
