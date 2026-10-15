@@ -157,4 +157,18 @@ public class ChannelSyncServiceTests : IntegrationDatabaseTestBase
         using var context = NewContext(_tenantA);
         Assert.Equal(0, await context.Videos.CountAsync());
     }
+
+    [Fact]
+    public async Task A_Failed_Sync_Still_Records_The_Attempt()
+    {
+        var connectionId = AddConnection(_tenantA);
+        var stub = new StubYouTubeClient { ThrowOnList = new InvalidOperationException("YouTube is down") };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => Sync(_tenantA, connectionId, stub));
+
+        using var context = NewContext(_tenantA);
+        var connection = await context.ChannelConnections.SingleAsync();
+        Assert.Equal<DateTime?>(Now, connection.LastSyncAttemptAtUtc);
+        Assert.Null(connection.LastSyncedAtUtc);
+    }
 }

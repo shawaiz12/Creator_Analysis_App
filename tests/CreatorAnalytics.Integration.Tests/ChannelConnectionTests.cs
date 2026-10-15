@@ -64,4 +64,15 @@ public class ChannelConnectionTests
         Assert.Equal(ConnectionStatus.Connected, connection.Status);
         Assert.Equal(Now, connection.LastSyncedAtUtc);
     }
+
+    [Fact]
+    public void Recording_A_Sync_Attempt_Stores_The_Time()
+    {
+        var connection = NewConnection();
+
+        connection.RecordSyncAttempt(Now.AddMinutes(5));
+
+        Assert.Equal<DateTime?>(Now.AddMinutes(5), connection.LastSyncAttemptAtUtc);
+        Assert.Null(connection.LastSyncedAtUtc);
+    }
 }

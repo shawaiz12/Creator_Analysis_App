@@ -48,6 +48,10 @@ public sealed class ChannelSyncService
         if (connection.Status != ConnectionStatus.Connected)
             return SyncResult.NeedsReconnect();
 
+        // Recorded first, so a channel that keeps failing is not retried on every tick.
+        connection.RecordSyncAttempt(nowUtc);
+        await _context.SaveChangesAsync(cancellationToken);
+
         try
         {
             return await SyncCoreAsync(connection, nowUtc, cancellationToken);

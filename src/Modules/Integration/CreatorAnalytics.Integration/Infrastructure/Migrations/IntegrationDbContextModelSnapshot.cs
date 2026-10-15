@@ -34,6 +34,9 @@ namespace CreatorAnalytics.Integration.Infrastructure.Migrations
                     b.Property<Guid>("ConnectedByUserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("LastSyncAttemptAtUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("LastSyncedAtUtc")
                         .HasColumnType("datetime2");
 

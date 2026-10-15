@@ -12,6 +12,7 @@ public class ChannelConnection : IMustHaveTenant
     public Guid ConnectedByUserId { get; private set; }
     public DateTime ConnectedAtUtc { get; private set; }
     public DateTime? LastSyncedAtUtc { get; private set; }
+    public DateTime? LastSyncAttemptAtUtc { get; private set; }
 
     private ChannelConnection()
     {
@@ -43,6 +44,8 @@ public class ChannelConnection : IMustHaveTenant
 
         LastSyncedAtUtc = nowUtc;
     }
+
+    public void RecordSyncAttempt(DateTime nowUtc) => LastSyncAttemptAtUtc = nowUtc;
 
     public void MarkNeedsReconnect() => Status = ConnectionStatus.NeedsReconnect;
 
