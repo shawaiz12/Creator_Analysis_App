@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http.Json;
 
 namespace CreatorAnalytics.Api.Tests;
 
@@ -47,8 +48,9 @@ public class GatekeeperTests : IClassFixture<ApiFactory>
     public async Task A_Member_Passes_The_Gatekeeper()
     {
         using var client = _factory.ClientFor("admin-ext");
+        var videoId = await _factory.SeedVideoAsync(_tenantId);
 
-        var response = await client.PostAsync($"/api/{_tenantId}/strategies", null);
+        var response = await client.PostAsJsonAsync($"/api/{_tenantId}/strategies", new { videoId });
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }

@@ -21,10 +21,11 @@ Last updated: <put today's date here>
   never touches module internals; no `IgnoreQueryFilters` or raw SQL in the source.
   **Identity:** \GET /api/me` lists the signed-in user’s organizations and roles.
 
-  - **Integration module (in progress):** channel connections, videos and 100-point retention
-  snapshots with tenant isolation; a sync service that inserts or updates by YouTube video
-  id, stores retention history, and flags connections that need to reconnect. Runs against
-  a fake YouTube client for now.
+  -- **Integration module:** channel connections, videos, transcripts and 100-point retention
+  snapshots with tenant isolation; a sync service (insert or update by YouTube video id,
+  retention history, reconnect handling); endpoints for Admins and Strategists; a contract
+  that lets Strategy check a video exists in the same organization. Runs against a fake
+  YouTube client for now.
 
 ## Not done yet
 

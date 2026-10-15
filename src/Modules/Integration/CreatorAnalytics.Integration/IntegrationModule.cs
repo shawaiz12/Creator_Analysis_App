@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using CreatorAnalytics.Integration.Services;
 using CreatorAnalytics.Integration.YouTube;
+using CreatorAnalytics.Integration.Contracts.Services;
 
 namespace CreatorAnalytics.Integration;
 
@@ -18,6 +19,8 @@ public static class IntegrationModule
         // The fake stands in for YouTube until the real Google client exists.
         services.AddSingleton<IYouTubeClient, FakeYouTubeClient>();
         services.AddScoped<ChannelSyncService>();
+
+        services.AddScoped<IVideoAnalyticsQuery, VideoAnalyticsQuery>();
 
         return services;
     }

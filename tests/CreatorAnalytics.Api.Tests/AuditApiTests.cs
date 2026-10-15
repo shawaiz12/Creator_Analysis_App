@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using CreatorAnalytics.Strategy.Endpoints;
@@ -31,7 +31,7 @@ public class AuditApiTests : IClassFixture<ApiFactory>
         using var editor = _factory.ClientFor("editor-u1");
         var baseUrl = $"/api/{tenantId}/strategies";
 
-        var created = await strategist.PostAsync(baseUrl, null);
+        var created = await strategist.PostAsJsonAsync(baseUrl, new { videoId = await _factory.SeedVideoAsync(tenantId) });
         var id = (await created.Content.ReadFromJsonAsync<CreatedResponse>())!.DocumentId;
 
         var revisionResponse = await strategist.PostAsJsonAsync(

@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Json;
 using CreatorAnalytics.Strategy.Endpoints;
 
@@ -27,7 +27,7 @@ public class StrategyWorkflowApiTests : IClassFixture<ApiFactory>
         using var admin = _factory.ClientFor("admin-w");
         using var editor = _factory.ClientFor("editor-w");
 
-        var created = await strategist.PostAsync(BaseUrl, null);
+        var created = await strategist.PostAsJsonAsync(BaseUrl, new { videoId = await _factory.SeedVideoAsync(_tenantId) });
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         var id = (await created.Content.ReadFromJsonAsync<CreatedResponse>())!.DocumentId;
 
@@ -121,14 +121,48 @@ public class StrategyWorkflowApiTests : IClassFixture<ApiFactory>
     {
         using var strategist = _factory.ClientFor("strategist-w");
 
-        var first = await strategist.PostAsync(BaseUrl, null);
+        var first = await strategist.PostAsJsonAsync(BaseUrl, new { videoId = await _factory.SeedVideoAsync(_tenantId) });
         var firstId = (await first.Content.ReadFromJsonAsync<CreatedResponse>())!.DocumentId;
         await Task.Delay(50);
-        var second = await strategist.PostAsync(BaseUrl, null);
+        var second = await strategist.PostAsJsonAsync(BaseUrl, new { videoId = await _factory.SeedVideoAsync(_tenantId) });
         var secondId = (await second.Content.ReadFromJsonAsync<CreatedResponse>())!.DocumentId;
 
         var list = await strategist.GetFromJsonAsync<List<StrategySummaryDto>>(BaseUrl);
 
         Assert.Equal(new[] { secondId, firstId }, list!.Select(s => s.Id).ToArray());
+    }
+
+    [Fact]
+    public async Task Creating_A_Strategy_For_An_Unknown_Video_Returns_400()
+    {
+        using var strategist = _factory.ClientFor("strategist-w");
+
+        var response = await strategist.PostAsJsonAsync(BaseUrl, new { videoId = Guid.NewGuid() });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Creating_A_Strategy_For_Another_Tenants_Video_Returns_400()
+    {
+        var foreignVideo = await _factory.SeedVideoAsync(Guid.NewGuid());
+        using var strategist = _factory.ClientFor("strategist-w");
+
+        var response = await strategist.PostAsJsonAsync(BaseUrl, new { videoId = foreignVideo });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task A_Strategy_Remembers_Which_Video_It_Is_About()
+    {
+        var videoId = await _factory.SeedVideoAsync(_tenantId);
+        using var strategist = _factory.ClientFor("strategist-w");
+
+        var created = await strategist.PostAsJsonAsync(BaseUrl, new { videoId });
+        var id = (await created.Content.ReadFromJsonAsync<CreatedResponse>())!.DocumentId;
+        var strategy = await strategist.GetFromJsonAsync<StrategyDto>($"{BaseUrl}/{id}");
+
+        Assert.Equal(videoId, strategy!.VideoId);
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using CreatorAnalytics.Integration.Contracts.Services;
 
 namespace CreatorAnalytics.Strategy.Endpoints;
 
@@ -33,6 +34,8 @@ public sealed record StrategyDto(
 public sealed record StrategySummaryDto(
     Guid Id, Guid VideoId, string Status, DateTime CreatedAtUtc, int RevisionCount);
 
+public sealed record CreateStrategyRequest(Guid VideoId);
+
 public static class StrategyEndpoints
 {
     public static void MapStrategyEndpoints(this IEndpointRouteBuilder app)
@@ -41,10 +44,19 @@ public static class StrategyEndpoints
                        .RequireAuthorization();
 
         // Create: Admins and Strategists only (Editors are read-only).
-        group.MapPost("/", async ([FromRoute] Guid tenantId, [FromServices] StrategyDbContext context) =>
+        // The video must exist in this organization.
+        group.MapPost("/", async (
+            [FromRoute] Guid tenantId,
+            [FromBody] CreateStrategyRequest request,
+            [FromServices] IVideoAnalyticsQuery videos,
+            [FromServices] StrategyDbContext context) =>
         {
-            var videoId = Guid.NewGuid(); // Placeholder until the Integration module provides real videos
-            var document = new StrategyDocument(tenantId, videoId);
+            var video = await videos.FindVideoAsync(request.VideoId);
+
+            if (video is null)
+                return Results.BadRequest(new { error = "That video does not exist in this organization." });
+
+            var document = new StrategyDocument(tenantId, video.VideoId);
 
             context.Documents.Add(document);
             await context.SaveChangesAsync();
