@@ -7,6 +7,8 @@ namespace CreatorAnalytics.Strategy.Domain
 {
     public class StrategyDocument : IMustHaveTenant
     {
+        public const int MaxAiRevisions = 5;
+        public const int MaxRevisionLength = 50_000;
         private readonly List<object> _domainEvents = new();
         public IReadOnlyCollection<object> DomainEvents => _domainEvents.AsReadOnly();
         public void ClearDomainEvents() => _domainEvents.Clear();
@@ -37,6 +39,10 @@ namespace CreatorAnalytics.Strategy.Domain
 
         public IReadOnlyList<StrategyReview> Reviews => _reviews;
 
+        private readonly List<GenerationRequest> _generationRequests = new();
+
+        public IReadOnlyList<GenerationRequest> GenerationRequests => _generationRequests;
+
         public StrategyRevision? CurrentRevision =>
      _revisions.MaxBy(r => r.VersionNumber);
 
@@ -49,6 +55,17 @@ namespace CreatorAnalytics.Strategy.Domain
             if (string.IsNullOrWhiteSpace(content))
                 throw new ArgumentException("Revision content is required.", nameof(content));
 
+            if (content.Length > MaxRevisionLength)
+                throw new ArgumentException(
+                    $"Revision content is longer than {MaxRevisionLength} characters.", nameof(content));
+
+            if (origin == RevisionOrigin.Ai
+                && _revisions.Count(r => r.Origin == RevisionOrigin.Ai) >= MaxAiRevisions)
+            {
+                throw new InvalidOperationException(
+                    $"A strategy can have at most {MaxAiRevisions} AI drafts.");
+            }
+
             var revision = new StrategyRevision(
                 TenantId, Id, (CurrentRevision?.VersionNumber ?? 0) + 1, content, origin, authorUserId);
 
@@ -58,6 +75,56 @@ namespace CreatorAnalytics.Strategy.Domain
     Id, TenantId, revision.Id, revision.VersionNumber,
     origin.ToString(), authorUserId, DateTime.UtcNow));
             return revision;
+        }
+
+        public GenerationRequest RequestGeneration(Guid requestedByUserId, DateTime nowUtc)
+        {
+            if (Status != StrategyStatus.Draft && Status != StrategyStatus.NeedsRevision)
+                throw new InvalidOperationException(
+                    $"Cannot request a draft from {Status}. Must be Draft or NeedsRevision.");
+
+            if (_generationRequests.Any(r => r.Status == GenerationStatus.Pending))
+                throw new InvalidOperationException("A draft is already being generated for this strategy.");
+
+            if (_revisions.Count(r => r.Origin == RevisionOrigin.Ai) >= MaxAiRevisions)
+                throw new InvalidOperationException(
+                    $"This strategy already has the maximum of {MaxAiRevisions} AI drafts.");
+
+            var request = new GenerationRequest(TenantId, Id, requestedByUserId, nowUtc);
+            _generationRequests.Add(request);
+
+            _domainEvents.Add(new Events.StrategyGenerationRequestedEvent(
+                Id, TenantId, request.Id, requestedByUserId, nowUtc));
+
+            return request;
+        }
+
+        public StrategyRevision CompleteGeneration(
+            Guid requestId, string content, string model, string promptVersion, DateTime nowUtc)
+        {
+            var request = FindPendingRequest(requestId);
+
+            // Refuses if the strategy is no longer editable, the text is blank or too long,
+            // or the AI draft limit is reached. In that case nothing is added.
+            var revision = AddRevision(content, RevisionOrigin.Ai, null);
+
+            request.MarkSucceeded(model, promptVersion, nowUtc);
+            return revision;
+        }
+
+        public void FailGeneration(Guid requestId, string error, bool permanent, DateTime nowUtc)
+        {
+            FindPendingRequest(requestId).MarkAttemptFailed(error, permanent, nowUtc);
+        }
+
+        private GenerationRequest FindPendingRequest(Guid requestId)
+        {
+            var request = _generationRequests.SingleOrDefault(r => r.Id == requestId);
+
+            if (request is null || request.Status != GenerationStatus.Pending)
+                throw new InvalidOperationException("That generation request is not open.");
+
+            return request;
         }
         public void SubmitForApproval(Guid submittedByUserId)
         {

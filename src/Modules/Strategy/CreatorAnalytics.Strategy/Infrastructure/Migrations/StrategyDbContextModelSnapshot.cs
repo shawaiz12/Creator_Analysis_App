@@ -23,6 +23,52 @@ namespace CreatorAnalytics.Strategy.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("CreatorAnalytics.Strategy.Domain.GenerationRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Error")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Model")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("NextAttemptAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PromptVersion")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RequestedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("RequestedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("StrategyDocumentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StrategyDocumentId");
+
+                    b.ToTable("GenerationRequest", "strategy");
+                });
+
             modelBuilder.Entity("CreatorAnalytics.Strategy.Domain.OutboxMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -163,6 +209,15 @@ namespace CreatorAnalytics.Strategy.Infrastructure.Migrations
                     b.ToTable("StrategyRevisions", "strategy");
                 });
 
+            modelBuilder.Entity("CreatorAnalytics.Strategy.Domain.GenerationRequest", b =>
+                {
+                    b.HasOne("CreatorAnalytics.Strategy.Domain.StrategyDocument", null)
+                        .WithMany("GenerationRequests")
+                        .HasForeignKey("StrategyDocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("CreatorAnalytics.Strategy.Domain.StrategyReview", b =>
                 {
                     b.HasOne("CreatorAnalytics.Strategy.Domain.StrategyDocument", null)
@@ -183,6 +238,8 @@ namespace CreatorAnalytics.Strategy.Infrastructure.Migrations
 
             modelBuilder.Entity("CreatorAnalytics.Strategy.Domain.StrategyDocument", b =>
                 {
+                    b.Navigation("GenerationRequests");
+
                     b.Navigation("Reviews");
 
                     b.Navigation("Revisions");

@@ -21,3 +21,10 @@ public sealed record StrategyImplementedEvent(
     Guid TenantId,
     Guid ImplementedByUserId,
     DateTime OccurredOnUtc);
+
+public sealed record StrategyGenerationRequestedEvent(
+    Guid DocumentId,
+    Guid TenantId,
+    Guid RequestId,
+    Guid RequestedByUserId,
+    DateTime OccurredOnUtc);
