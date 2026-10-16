@@ -33,5 +33,7 @@ transcripts are untrusted input.
 
 ## Open questions
 - Which AI provider and model for the real generator.
-- The exact caps (per strategy, per organization per day).
+- Decided: at most 5 AI drafts per strategy, one open request at a time (both enforced by
+  the strategy itself and, for the open request, by the database). A per-organization daily
+  cap is still open.
 - Whether a later extraction into a Python service changes the worker's home.

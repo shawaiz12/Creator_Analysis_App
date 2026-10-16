@@ -34,6 +34,13 @@ namespace CreatorAnalytics.Strategy.Infrastructure
 
             builder.Navigation(x => x.Revisions).UsePropertyAccessMode(PropertyAccessMode.Field);
             builder.Navigation(x => x.Reviews).UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            builder.HasMany(x => x.GenerationRequests)
+    .WithOne()
+    .HasForeignKey(r => r.StrategyDocumentId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Navigation(x => x.GenerationRequests).UsePropertyAccessMode(PropertyAccessMode.Field);
         }
     }
 
@@ -88,6 +95,30 @@ namespace CreatorAnalytics.Strategy.Infrastructure
 
             builder.Property(x => x.Content)
                 .IsRequired(); // Maps to NVARCHAR(MAX) for JSON payloads
+        }
+    }
+
+    public class GenerationRequestConfiguration : IEntityTypeConfiguration<GenerationRequest>
+    {
+        public void Configure(EntityTypeBuilder<GenerationRequest> builder)
+        {
+            builder.ToTable("GenerationRequests");
+            builder.HasKey(x => x.Id);
+            builder.Property(x => x.Id).ValueGeneratedNever();
+
+            builder.Property(x => x.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
+            builder.Property(x => x.Error).HasMaxLength(1000);
+            builder.Property(x => x.Model).HasMaxLength(100);
+            builder.Property(x => x.PromptVersion).HasMaxLength(50);
+
+            builder.HasIndex(x => x.TenantId);
+            builder.HasIndex(x => new { x.Status, x.NextAttemptAtUtc });
+
+            // The database itself refuses a second open request for the same strategy,
+            // even if two requests arrive at the same moment.
+            builder.HasIndex(x => x.StrategyDocumentId)
+                .IsUnique()
+                .HasFilter("[Status] = 'Pending'");
         }
     }
 }

@@ -24,6 +24,7 @@ public class StrategyDbContext : DbContext
     public DbSet<StrategyRevision> Revisions => Set<StrategyRevision>();
     public DbSet<StrategyReview> Reviews => Set<StrategyReview>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<GenerationRequest> GenerationRequests => Set<GenerationRequest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,6 +34,7 @@ public class StrategyDbContext : DbContext
         modelBuilder.Entity<StrategyDocument>().HasQueryFilter(x => x.TenantId == CurrentTenantId);
         modelBuilder.Entity<StrategyRevision>().HasQueryFilter(x => x.TenantId == CurrentTenantId);
         modelBuilder.Entity<StrategyReview>().HasQueryFilter(x => x.TenantId == CurrentTenantId);
+        modelBuilder.Entity<GenerationRequest>().HasQueryFilter(x => x.TenantId == CurrentTenantId);
     }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)

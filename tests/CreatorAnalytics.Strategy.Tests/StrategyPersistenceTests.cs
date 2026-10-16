@@ -22,7 +22,9 @@ public class StrategyPersistenceTests : DatabaseTestBase
         context.Documents
             .Include(d => d.Revisions)
             .Include(d => d.Reviews)
+            .Include(d => d.GenerationRequests)
             .Single(d => d.Id == id);
+
 
     [Fact]
     public void Saves_And_Loads_A_Full_Review_History()
@@ -148,6 +150,7 @@ public class StrategyPersistenceTests : DatabaseTestBase
         var message = Assert.Single(check.OutboxMessages);
         Assert.Equal("StrategyApprovedEvent", message.Type);
     }
+
     [Fact]
     public void The_Creation_Time_Survives_A_Round_Trip()
     {
@@ -162,5 +165,69 @@ public class StrategyPersistenceTests : DatabaseTestBase
         var loaded = Load(read, document.Id);
 
         Assert.Equal(document.CreatedAtUtc, loaded.CreatedAtUtc);
+    }
+    [Fact]
+    public void A_Generation_Request_Round_Trips_Together_With_Its_Ai_Draft()
+    {
+        var document = new StrategyDocument(_tenantId, Guid.NewGuid());
+        var request = document.RequestGeneration(_reviewerId, DateTime.UtcNow);
+        document.CompleteGeneration(request.Id, "AI draft text", "template", "v1", DateTime.UtcNow);
+
+        using (var write = NewContext(_tenantId))
+        {
+            write.Documents.Add(document);
+            write.SaveChanges();
+        }
+
+        using var read = NewContext(_tenantId);
+        var loaded = Load(read, document.Id);
+
+        var saved = Assert.Single(loaded.GenerationRequests);
+        Assert.Equal(GenerationStatus.Succeeded, saved.Status);
+        Assert.Equal("template", saved.Model);
+
+        var revision = Assert.Single(loaded.Revisions);
+        Assert.Equal(RevisionOrigin.Ai, revision.Origin);
+        Assert.Null(revision.AuthorUserId);
+    }
+
+    [Fact]
+    public void Another_Tenant_Sees_No_Generation_Requests()
+    {
+        var document = new StrategyDocument(_tenantId, Guid.NewGuid());
+        document.RequestGeneration(_reviewerId, DateTime.UtcNow);
+
+        using (var write = NewContext(_tenantId))
+        {
+            write.Documents.Add(document);
+            write.SaveChanges();
+        }
+
+        using var other = NewContext(Guid.NewGuid());
+
+        Assert.Empty(other.GenerationRequests.ToList());
+    }
+
+    [Fact]
+    public void Two_Simultaneous_Requests_For_One_Strategy_Cannot_Both_Be_Saved()
+    {
+        var document = new StrategyDocument(_tenantId, Guid.NewGuid());
+        using (var setup = NewContext(_tenantId))
+        {
+            setup.Documents.Add(document);
+            setup.SaveChanges();
+        }
+
+        using var first = NewContext(_tenantId);
+        using var second = NewContext(_tenantId);
+        var docFirst = Load(first, document.Id);
+        var docSecond = Load(second, document.Id);
+
+        docFirst.RequestGeneration(_reviewerId, DateTime.UtcNow);
+        docSecond.RequestGeneration(_reviewerId, DateTime.UtcNow);
+
+        first.SaveChanges();
+
+        Assert.Throws<DbUpdateException>(() => second.SaveChanges());
     }
 }
