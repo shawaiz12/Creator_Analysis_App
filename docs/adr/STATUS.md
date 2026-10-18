@@ -27,6 +27,12 @@ Last updated: <put today's date here>
   that lets Strategy check a video exists in the same organization. Runs against a fake
   YouTube client for now.
 
+  - **AI insights (foundations):** generation requests inside the strategy (one open request at
+  a time, at most 5 AI drafts, retry backoff, database-enforced), a retention analyzer that
+  finds the biggest drop-offs with timestamps, and a deterministic template generator behind
+  `IInsightGenerator`. The background worker, the generate endpoint and the real AI
+  generator come next.
+
 ## Not done yet
 
 
