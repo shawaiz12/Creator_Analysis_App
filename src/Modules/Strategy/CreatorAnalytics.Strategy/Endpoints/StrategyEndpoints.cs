@@ -34,6 +34,10 @@ public sealed record StrategyDto(
 public sealed record StrategySummaryDto(
     Guid Id, Guid VideoId, string Status, DateTime CreatedAtUtc, int RevisionCount);
 
+public sealed record GenerationRequestDto(
+    Guid Id, string Status, int Attempts, DateTime RequestedAtUtc, DateTime? CompletedAtUtc,
+    string? Error, string? Model, string? PromptVersion);
+
 public sealed record CreateStrategyRequest(Guid VideoId);
 
 public static class StrategyEndpoints
@@ -145,6 +149,51 @@ public static class StrategyEndpoints
             });
         }).RequireAuthorization(policy => policy.RequireRole("Admin", "Strategist"));
 
+        // Ask for an AI draft. The answer is immediate (202); the draft arrives a few seconds
+        // later, written by the background worker.
+        group.MapPost("/{id:guid}/generate", async (
+            [FromRoute] Guid id,
+            [FromServices] ICurrentUser currentUser,
+            [FromServices] StrategyDbContext context) =>
+        {
+            if (currentUser.UserId is not Guid requesterId)
+                return Results.Unauthorized();
+
+            return await Guard(async () =>
+            {
+                var document = await LoadAsync(context, id);
+                if (document is null)
+                    return Results.NotFound();
+
+                var request = document.RequestGeneration(requesterId, DateTime.UtcNow);
+                await context.SaveChangesAsync();
+
+                return Results.Accepted(
+                    $"/api/{document.TenantId}/strategies/{id}/generation",
+                    new { RequestId = request.Id });
+            });
+        }).RequireAuthorization(policy => policy.RequireRole("Admin", "Strategist"));
+
+        // Where are my draft requests? Newest first.
+        group.MapGet("/{id:guid}/generation", async (
+            [FromRoute] Guid id,
+            [FromServices] StrategyDbContext context) =>
+        {
+            var exists = await context.Documents.AnyAsync(d => d.Id == id);
+            if (!exists)
+                return Results.NotFound();
+
+            var rows = await context.GenerationRequests
+                .AsNoTracking()
+                .Where(r => r.StrategyDocumentId == id)
+                .OrderByDescending(r => r.RequestedAtUtc)
+                .ToListAsync();
+
+            return Results.Ok(rows.Select(r => new GenerationRequestDto(
+                r.Id, r.Status.ToString(), r.Attempts, r.RequestedAtUtc, r.CompletedAtUtc,
+                r.Error, r.Model, r.PromptVersion)));
+        }).RequireAuthorization(policy => policy.RequireRole("Admin", "Strategist"));
+
         // Approve: Admins only. The client says which revision it reviewed.
         group.MapPost("/{id:guid}/approve", async (
             [FromRoute] Guid id,
@@ -217,10 +266,11 @@ public static class StrategyEndpoints
     }
 
     private static Task<StrategyDocument?> LoadAsync(StrategyDbContext context, Guid id) =>
-        context.Documents
-            .Include(d => d.Revisions)
-            .Include(d => d.Reviews)
-            .SingleOrDefaultAsync(d => d.Id == id);
+     context.Documents
+         .Include(d => d.Revisions)
+         .Include(d => d.Reviews)
+         .Include(d => d.GenerationRequests)
+         .SingleOrDefaultAsync(d => d.Id == id);
 
     // Editors may only see strategies that have been approved.
     private static bool CanView(ClaimsPrincipal user, StrategyDocument document) =>

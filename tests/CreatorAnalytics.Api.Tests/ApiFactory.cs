@@ -19,6 +19,7 @@ using CreatorAnalytics.Audit.Infrastructure;
 using CreatorAnalytics.Integration.Domain;
 using CreatorAnalytics.Integration.Infrastructure;
 using CreatorAnalytics.Integration.Services;
+using CreatorAnalytics.Strategy.Insights;
 
 namespace CreatorAnalytics.Api.Tests;
 
@@ -68,6 +69,14 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     d => d.ImplementationType == typeof(ChannelSyncBackgroundService));
             if (syncTimer is not null)
                 services.Remove(syncTimer);
+
+            var generationTimer = services.SingleOrDefault(
+    d => d.ImplementationType == typeof(GenerationBackgroundService));
+            if (generationTimer is not null)
+                services.Remove(generationTimer);
+
+            services.RemoveAll<IOrganizationDirectory>();
+            services.AddSingleton<IOrganizationDirectory>(new FakeOrganizationDirectory(Access));
 
             // Fake sign-in instead of Microsoft Entra ID.
             services.AddAuthentication(options =>
@@ -211,7 +220,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         await context.SaveChangesAsync();
     }
 
-    public async Task<Guid> SeedVideoAsync(Guid tenantId)
+    public async Task<Guid> SeedVideoAsync(Guid tenantId, bool withRetention = false, string? transcript = null)
     {
         using var scope = Services.CreateScope();
         scope.ServiceProvider.GetRequiredService<TenantContext>().Set(tenantId);
@@ -225,9 +234,31 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         var video = new Video(
             tenantId, connection.Id, $"seed-{Guid.NewGuid().ToString("N")[..16]}", "Seed video",
             DateTime.UtcNow.AddDays(-1), 600, DateTime.UtcNow);
+
+        if (transcript is not null)
+            video.SetTranscript(transcript);
+
         context.Videos.Add(video);
         await context.SaveChangesAsync();
 
+        if (withRetention)
+        {
+            var points = Enumerable.Range(1, 100)
+                .Select(i =>
+                {
+                    var t = i / 100.0;
+                    var watch = t <= 0.10 ? 1.0 - 4.0 * t : 0.6 - 0.4 * (t - 0.10) / 0.90;
+                    return new RetentionPoint(t, Math.Round(watch, 4));
+                })
+                .ToList();
+
+            context.RetentionSnapshots.Add(new RetentionSnapshot(tenantId, video.Id, points, DateTime.UtcNow));
+            await context.SaveChangesAsync();
+        }
+
         return video.Id;
     }
+
+    public Task<int> RunGenerationAsync() =>
+        Services.GetRequiredService<GenerationDispatcher>().RunOnceAsync(DateTime.UtcNow);
 }

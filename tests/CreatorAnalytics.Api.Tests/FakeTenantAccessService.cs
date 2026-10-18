@@ -11,4 +11,7 @@ public sealed class FakeTenantAccessService : ITenantAccessService
 
     public Task<TenantAccess?> GetAccessAsync(Guid tenantId, string externalUserId) =>
         Task.FromResult(_members.TryGetValue((tenantId, externalUserId), out var access) ? access : null);
+
+    public IReadOnlyList<Guid> KnownTenantIds() =>
+    _members.Keys.Select(k => k.TenantId).Distinct().ToList();
 }
