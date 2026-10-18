@@ -230,4 +230,30 @@ public class StrategyPersistenceTests : DatabaseTestBase
 
         Assert.Throws<DbUpdateException>(() => second.SaveChanges());
     }
+    [Fact]
+    public void A_Revision_Cannot_Slip_In_After_The_Strategy_Was_Submitted_Elsewhere()
+    {
+        var document = new StrategyDocument(_tenantId, Guid.NewGuid());
+        document.AddRevision("First draft", RevisionOrigin.Human, _reviewerId);
+        using (var setup = NewContext(_tenantId))
+        {
+            setup.Documents.Add(document);
+            setup.SaveChanges();
+        }
+
+        using var submitter = NewContext(_tenantId);
+        using var editor = NewContext(_tenantId);
+        var submitting = Load(submitter, document.Id);
+        var editing = Load(editor, document.Id);
+
+        submitting.SubmitForApproval(Guid.NewGuid());
+        submitter.SaveChanges();
+
+        editing.AddRevision("A late change", RevisionOrigin.Ai, null);
+
+        Assert.Throws<DbUpdateConcurrencyException>(() => editor.SaveChanges());
+
+        using var check = NewContext(_tenantId);
+        Assert.Single(Load(check, document.Id).Revisions);
+    }
 }

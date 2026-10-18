@@ -17,6 +17,7 @@ namespace CreatorAnalytics.Strategy.Domain
         public Guid VideoId { get; private set; }
         public StrategyStatus Status { get; private set; }
         public DateTime CreatedAtUtc { get; private set; }
+        public DateTime LastModifiedAtUtc { get; private set; }
 
         public byte[] RowVersion { get; private set; } = Array.Empty<byte>();
 
@@ -27,6 +28,7 @@ namespace CreatorAnalytics.Strategy.Domain
             VideoId = videoId;
             Status = StrategyStatus.Draft;
             CreatedAtUtc = DateTime.UtcNow;
+            LastModifiedAtUtc = CreatedAtUtc;
         }
         private StrategyDocument() { }
 
@@ -70,6 +72,11 @@ namespace CreatorAnalytics.Strategy.Domain
                 TenantId, Id, (CurrentRevision?.VersionNumber ?? 0) + 1, content, origin, authorUserId);
 
             _revisions.Add(revision);
+
+            // Touching the strategy's own row switches on the RowVersion check, so a revision
+            // cannot slip in after someone else submitted the strategy.
+            var now = DateTime.UtcNow;
+            LastModifiedAtUtc = now > LastModifiedAtUtc ? now : LastModifiedAtUtc.AddTicks(1);
 
             _domainEvents.Add(new Events.StrategyRevisionAddedEvent(
     Id, TenantId, revision.Id, revision.VersionNumber,
