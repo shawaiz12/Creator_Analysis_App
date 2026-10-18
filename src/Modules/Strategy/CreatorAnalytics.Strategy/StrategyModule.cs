@@ -20,6 +20,8 @@ public static class StrategyModule
         // The template writer stands in until the real AI generator exists.
         services.AddSingleton<IInsightGenerator, TemplateInsightGenerator>();
         services.AddScoped<InsightInputBuilder>();
+        services.AddSingleton<GenerationDispatcher>();
+        services.AddHostedService<GenerationBackgroundService>();
 
         return services;
     }

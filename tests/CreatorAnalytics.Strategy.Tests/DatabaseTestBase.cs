@@ -2,6 +2,11 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using CreatorAnalytics.Identity.Contracts.Services;
+using CreatorAnalytics.Integration.Contracts.Services;
+using CreatorAnalytics.SharedKernel.Tenancy;
+using CreatorAnalytics.Strategy.Insights;
+using Microsoft.Extensions.DependencyInjection;
 
 
 namespace CreatorAnalytics.Strategy.Tests
@@ -37,6 +42,26 @@ namespace CreatorAnalytics.Strategy.Tests
                 .Options;
 
             return new StrategyDbContext(options, new FixedTenantContext(tenantId));
+        }
+
+        protected ServiceProvider BuildProvider(
+    IEnumerable<Guid> tenantIds, IVideoAnalyticsQuery videos, IInsightGenerator generator)
+        {
+            var services = new ServiceCollection();
+
+            services.AddLogging();
+            services.AddScoped<TenantContext>();
+            services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
+            services.AddDbContext<StrategyDbContext>(options =>
+                options.UseSqlServer(_connectionString, sql =>
+                    sql.MigrationsHistoryTable("__EFMigrationsHistory", StrategyDbContext.Schema)));
+            services.AddSingleton<IVideoAnalyticsQuery>(videos);
+            services.AddSingleton<IInsightGenerator>(generator);
+            services.AddScoped<InsightInputBuilder>();
+            services.AddSingleton<IOrganizationDirectory>(new FixedOrganizationDirectory(tenantIds));
+            services.AddSingleton<GenerationDispatcher>();
+
+            return services.BuildServiceProvider();
         }
 
 
