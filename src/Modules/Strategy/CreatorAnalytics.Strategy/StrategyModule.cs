@@ -19,6 +19,7 @@ public static class StrategyModule
         services.AddScoped<IStrategyOutbox, StrategyOutboxService>();
         // The template writer stands in until the real AI generator exists.
         services.AddSingleton<IInsightGenerator, TemplateInsightGenerator>();
+        services.AddScoped<InsightInputBuilder>();
 
         return services;
     }
