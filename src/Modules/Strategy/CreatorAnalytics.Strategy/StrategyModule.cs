@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using CreatorAnalytics.Strategy.Contracts.Services;
 using CreatorAnalytics.Strategy.Insights;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace CreatorAnalytics.Strategy;
 
@@ -22,6 +23,15 @@ public static class StrategyModule
         services.AddScoped<InsightInputBuilder>();
         services.AddSingleton<GenerationDispatcher>();
         services.AddHostedService<GenerationBackgroundService>();
+
+        return services;
+    }
+
+    /// <summary>Switches draft writing from the template writer to a model reached through IChatClient.</summary>
+    public static IServiceCollection UseChatInsightGenerator(this IServiceCollection services)
+    {
+        services.RemoveAll<IInsightGenerator>();
+        services.AddSingleton<IInsightGenerator, ChatInsightGenerator>();
 
         return services;
     }

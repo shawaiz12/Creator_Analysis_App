@@ -75,6 +75,10 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             if (generationTimer is not null)
                 services.Remove(generationTimer);
 
+            // API tests always use the predictable template writer, whatever AI settings exist locally.
+            services.RemoveAll<IInsightGenerator>();
+            services.AddSingleton<IInsightGenerator, TemplateInsightGenerator>();
+
             services.RemoveAll<IOrganizationDirectory>();
             services.AddSingleton<IOrganizationDirectory>(new FakeOrganizationDirectory(Access));
 
