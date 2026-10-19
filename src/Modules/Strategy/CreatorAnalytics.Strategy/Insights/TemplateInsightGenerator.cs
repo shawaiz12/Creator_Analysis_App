@@ -83,17 +83,9 @@ public sealed class TemplateInsightGenerator : IInsightGenerator
     }
 
     // Always the same format, whatever the computer's language settings are.
-    private static string Number(double value) => value.ToString("0.#", CultureInfo.InvariantCulture);
+    private static string Number(double value) => InsightFormat.Number(value);
 
-    private static string Clock(int seconds)
-    {
-        var time = TimeSpan.FromSeconds(seconds);
-
-        return time.TotalHours >= 1
-            ? time.ToString(@"h\:mm\:ss", CultureInfo.InvariantCulture)
-            : time.ToString(@"m\:ss", CultureInfo.InvariantCulture);
-    }
-
+    private static string Clock(int seconds) => InsightFormat.Clock(seconds);
     private static string Promise(string title) =>
         string.Join(' ', title.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(4));
 
