@@ -1,6 +1,6 @@
 # 0006. The real AI generator
 
-Status: Proposed
+Status: Accepted (verified with a local model; no cloud provider tried yet)
 
 ## Context
 Draft generation works end to end with a deterministic template writer. A real language
@@ -35,6 +35,10 @@ model should write richer drafts without weakening any safety property from ADR 
 - Real usage costs money. Output size, the five-drafts-per-strategy cap and a spending limit
   set in the provider's console bound it.
 - The "no identifiers are sent" rule must be repeated in the product's terms later.
+
+- Development and tests use a free local model through Ollama (OllamaSharp implements
+  `IChatClient`). A cloud provider is a configuration change at one place in `Program.cs`.
+  API tests always use the template writer, so they never depend on a model.
 
 ## Open questions
 - Which provider and model.

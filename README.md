@@ -65,3 +65,16 @@ one SQL Server database with a schema per module.
 Never paste a token anywhere: it is a live credential for about an hour. In Windows
 PowerShell 5.1, a JSON array piped straight into `Select-Object` can display blank
 columns; store the result in a variable first.
+
+## Optional: write drafts with a local AI model
+
+Install Ollama (ollama.com), then `ollama pull phi3:mini`. Tell the API to use it:
+
+```powershell
+dotnet user-secrets set "Ai:Provider" "Ollama" --project src\Host\CreatorAnalytics.Api
+dotnet user-secrets set "Ai:Model" "phi3:mini" --project src\Host\CreatorAnalytics.Api
+```
+
+Without these settings the deterministic template writer is used. Nothing leaves your
+machine: the model sees only the video title, the transcript, the computed drop-off facts and
+earlier rejection reasons.
