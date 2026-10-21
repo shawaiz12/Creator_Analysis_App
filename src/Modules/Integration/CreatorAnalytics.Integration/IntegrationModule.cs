@@ -1,9 +1,10 @@
-﻿using CreatorAnalytics.Integration.Infrastructure;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+﻿using CreatorAnalytics.Integration.Contracts.Services;
+using CreatorAnalytics.Integration.Infrastructure;
 using CreatorAnalytics.Integration.Services;
 using CreatorAnalytics.Integration.YouTube;
-using CreatorAnalytics.Integration.Contracts.Services;
+using CreatorAnalytics.SharedKernel.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 
 namespace CreatorAnalytics.Integration;
@@ -24,6 +25,9 @@ public static class IntegrationModule
         services.AddScoped<IVideoAnalyticsQuery, VideoAnalyticsQuery>();
         services.AddSingleton<ChannelSyncDispatcher>();
         services.AddHostedService<ChannelSyncBackgroundService>();
+
+
+        services.AddScoped<IDatabaseMigrator, IntegrationDatabaseMigrator>();
 
         return services;
     }

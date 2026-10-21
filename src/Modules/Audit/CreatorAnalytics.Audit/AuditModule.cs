@@ -1,6 +1,7 @@
 ﻿using CreatorAnalytics.Audit.Contracts.Services;
 using CreatorAnalytics.Audit.Infrastructure;
 using CreatorAnalytics.Audit.Services;
+using CreatorAnalytics.SharedKernel.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,6 +19,8 @@ public static class AuditModule
         services.AddScoped<IAuditQueryService, AuditQueryService>();
 
         services.AddScoped<IAuditWriter, AuditWriter>();
+
+        services.AddScoped<IDatabaseMigrator, AuditDatabaseMigrator>();
 
         return services;
     }

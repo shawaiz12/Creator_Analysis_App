@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using CreatorAnalytics.Strategy.Contracts.Services;
 using CreatorAnalytics.Strategy.Insights;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using CreatorAnalytics.SharedKernel.Data;
 
 namespace CreatorAnalytics.Strategy;
 
@@ -13,9 +14,8 @@ public static class StrategyModule
         this IServiceCollection services, string connectionString)
     {
         services.AddDbContext<StrategyDbContext>(options =>
-     options.UseSqlServer(connectionString, sql =>
-         sql.MigrationsHistoryTable("__EFMigrationsHistory", StrategyDbContext.Schema)));
-
+            options.UseSqlServer(connectionString, sql =>
+                sql.MigrationsHistoryTable("__EFMigrationsHistory", StrategyDbContext.Schema)));
 
         services.AddScoped<IStrategyOutbox, StrategyOutboxService>();
         // The template writer stands in until the real AI generator exists.
@@ -23,6 +23,9 @@ public static class StrategyModule
         services.AddScoped<InsightInputBuilder>();
         services.AddSingleton<GenerationDispatcher>();
         services.AddHostedService<GenerationBackgroundService>();
+
+        // ADDED HERE: right before return services;
+        services.AddScoped<IDatabaseMigrator, StrategyDatabaseMigrator>();
 
         return services;
     }

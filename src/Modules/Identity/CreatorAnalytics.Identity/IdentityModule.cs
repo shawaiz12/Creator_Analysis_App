@@ -1,8 +1,10 @@
 ﻿using CreatorAnalytics.Identity.Contracts.Services;
 using CreatorAnalytics.Identity.Infrastructure;
 using CreatorAnalytics.Identity.Services;
+using CreatorAnalytics.SharedKernel.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+
 
 namespace CreatorAnalytics.Identity;
 
@@ -20,6 +22,8 @@ public static class IdentityModule
         services.AddScoped<IInvitationService, InvitationService>();
         services.AddScoped<IMembershipQueryService, MembershipQueryService>();
         services.AddScoped<IOrganizationDirectory, OrganizationDirectory>();
+
+        services.AddScoped<IDatabaseMigrator, IdentityDatabaseMigrator>();
 
         return services;
     }

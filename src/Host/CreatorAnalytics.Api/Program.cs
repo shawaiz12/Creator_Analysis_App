@@ -15,6 +15,8 @@ using Microsoft.Extensions.AI;
 using OllamaSharp;
 using CreatorAnalytics.Api.Health;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using CreatorAnalytics.SharedKernel.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,6 +76,19 @@ builder.Services.AddHealthChecks()
     .AddCheck<DatabaseHealthCheck>("database", tags: new[] { "ready" });
 
 var app = builder.Build();
+
+// Optional: create or update the database schema on startup (used by the Docker setup).
+if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
+{
+    using var scope = app.Services.CreateScope();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    foreach (var migrator in scope.ServiceProvider.GetServices<IDatabaseMigrator>())
+    {
+        logger.LogInformation("Applying database migrations for {Module}", migrator.Name);
+        await migrator.MigrateAsync();
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
