@@ -7,6 +7,8 @@ uses AI to propose strategy fixes. Every AI strategy needs human approval
 Architecture: .NET 10 modular monolith (Identity, Integration, Strategy, Audit),
 one SQL Server database with a schema per module.
 
+[![CI](https://github.com/shawaiz12/Creator_Analysis_App/actions/workflows/ci.yml/badge.svg)](https://github.com/shawaiz12/Creator_Analysis_App/actions/workflows/ci.yml)
+
 ## Run it locally
 
 1. Create a `.env` file in the repo root (it is git-ignored). Copy `.env.example`
