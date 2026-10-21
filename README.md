@@ -80,3 +80,11 @@ dotnet user-secrets set "Ai:Model" "phi3:mini" --project src\Host\CreatorAnalyti
 Without these settings the deterministic template writer is used. Nothing leaves your
 machine: the model sees only the video title, the transcript, the computed drop-off facts and
 earlier rejection reasons.
+
+## Run everything with Docker
+
+1. Copy `.env.example` to `.env` and fill it in, including the two `AUTH_` values from your
+   Microsoft Entra app registration.
+2. `docker compose up --build -d`
+3. `http://localhost:8080/health/ready` should answer `Healthy`. The database schema is
+   created automatically on first start (`Database__MigrateOnStartup`).

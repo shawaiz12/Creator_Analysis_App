@@ -33,6 +33,8 @@ Last updated: <put today's date here>
   `IInsightGenerator`. The background worker, the generate endpoint and the real AI
   generator come next.
 
+  **Operations:** health endpoints (live and ready), JSON logs outside development, per-module migrators with a startup setting, a Docker image and a one-command compose setup, and CI that also builds the image.
+
 ## Not done yet
 
 
