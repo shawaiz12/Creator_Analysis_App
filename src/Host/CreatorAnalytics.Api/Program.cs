@@ -13,8 +13,16 @@ using CreatorAnalytics.Integration;
 using CreatorAnalytics.Integration.Endpoints;
 using Microsoft.Extensions.AI;
 using OllamaSharp;
+using CreatorAnalytics.Api.Health;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Logging.ClearProviders();
+    builder.Logging.AddJsonConsole();
+}
 
 // Per-request context: which tenant and which user this request belongs to.
 builder.Services.AddScoped<TenantContext>();
@@ -62,6 +70,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddSingleton<OutboxDispatcher>();
 builder.Services.AddHostedService<OutboxProcessorBackgroundService>();
 
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>("database", tags: new[] { "ready" });
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -80,6 +91,9 @@ app.MapStrategyEndpoints();
 app.MapIdentityEndpoints();
 app.MapAuditEndpoints();
 app.MapIntegrationEndpoints();
+
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
 
 app.Run();
 
