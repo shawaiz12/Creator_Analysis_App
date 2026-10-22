@@ -23,6 +23,7 @@ services:
       ConnectionStrings__Default: "Server=sqlserver,1433;Database=CreatorAnalytics;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
       Authentication__Authority: ${AUTH_AUTHORITY:-}
       Authentication__Audience: ${AUTH_AUDIENCE:-}
+      Cors__AllowedOrigins__0: "http://localhost:5173"
     ports:
       - "8080:8080"
 

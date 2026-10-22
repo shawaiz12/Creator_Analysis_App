@@ -75,7 +75,21 @@ builder.Services.AddHostedService<OutboxProcessorBackgroundService>();
 builder.Services.AddHealthChecks()
     .AddCheck<DatabaseHealthCheck>("database", tags: new[] { "ready" });
 
+const string WebCorsPolicy = "Web";
+
+builder.Services.AddCors(options =>
+{
+    var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+
+    options.AddPolicy(WebCorsPolicy, policy => policy
+        .WithOrigins(origins)
+        .WithHeaders("Authorization", "Content-Type")
+        .WithMethods("GET", "POST", "PUT", "DELETE"));
+});
+
 var app = builder.Build();
+
+
 
 // Optional: create or update the database schema on startup (used by the Docker setup).
 if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
@@ -96,6 +110,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors(WebCorsPolicy);
 
 // Identity and multi-tenancy pipeline. The order matters.
 app.UseAuthentication();
