@@ -36,10 +36,11 @@ export function useChannels(tenantId: string) {
   })
 }
 
-export function useVideos(tenantId: string) {
+export function useVideos(tenantId: string, enabled = true) {
   return useQuery({
     queryKey: tenantKey(tenantId, 'videos'),
     queryFn: () => tenantFetch<Video[]>(tenantId, '/videos'),
+    enabled,
   })
 }
 

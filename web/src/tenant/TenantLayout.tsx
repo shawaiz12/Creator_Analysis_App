@@ -48,6 +48,9 @@ export function TenantLayout() {
             Videos
           </NavLink>
         )}
+        <NavLink to={`/orgs/${context.tenantId}/strategies`} className={linkClass}>
+          Strategies
+        </NavLink>
       </nav>
 
       <div className="mt-6">

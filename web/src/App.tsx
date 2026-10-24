@@ -8,6 +8,8 @@ import { Overview } from './tenant/Overview'
 import { AnalyticsOnly } from './tenant/AnalyticsOnly'
 import { Videos } from './tenant/Videos'
 import { VideoRetention } from './tenant/VideoRetention'
+import { Strategies } from './tenant/Strategies'
+import { StrategyDetail } from './tenant/StrategyDetail'
 
 export default function App() {
   const { instance, accounts } = useMsal()
@@ -49,6 +51,8 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/orgs/:tenantId" element={<TenantLayout />}>
               <Route index element={<Overview />} />
+              <Route path="strategies" element={<Strategies />} />
+              <Route path="strategies/:strategyId" element={<StrategyDetail />} />
               <Route element={<AnalyticsOnly />}>
                 <Route path="videos" element={<Videos />} />
                 <Route path="videos/:videoId" element={<VideoRetention />} />
