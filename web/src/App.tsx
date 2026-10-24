@@ -1,6 +1,10 @@
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react'
+import { Link, Route, Routes } from 'react-router-dom'
 import { apiScopes } from './auth/msal'
 import { Home } from './screens/Home'
+import { NotFound } from './screens/NotFound'
+import { TenantLayout } from './tenant/TenantLayout'
+import { Overview } from './tenant/Overview'
 
 export default function App() {
   const { instance, accounts } = useMsal()
@@ -9,7 +13,9 @@ export default function App() {
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-3xl items-center justify-between p-4">
-          <h1 className="text-xl font-bold">CreatorAnalytics</h1>
+          <Link to="/" className="text-xl font-bold">
+            CreatorAnalytics
+          </Link>
           <AuthenticatedTemplate>
             <div className="flex items-center gap-3 text-sm">
               <span className="text-slate-600">{accounts[0]?.username}</span>
@@ -36,7 +42,13 @@ export default function App() {
         </UnauthenticatedTemplate>
 
         <AuthenticatedTemplate>
-          <Home />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/orgs/:tenantId" element={<TenantLayout />}>
+              <Route index element={<Overview />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </AuthenticatedTemplate>
       </div>
     </main>

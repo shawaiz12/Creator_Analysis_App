@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useMsal } from '@azure/msal-react'
 import { apiScopes } from '../auth/msal'
 import { SignInRequiredError } from '../api/apiFetch'
@@ -7,13 +8,19 @@ import { useCreateOrganization, useMe } from '../api/me'
 function CreateOrganizationForm() {
   const [name, setName] = useState('')
   const create = useCreateOrganization()
+  const navigate = useNavigate()
 
   return (
     <form
       className="mt-6 rounded border bg-white p-4"
       onSubmit={(event) => {
         event.preventDefault()
-        create.mutate(name.trim(), { onSuccess: () => setName('') })
+        create.mutate(name.trim(), {
+          onSuccess: (result) => {
+            setName('')
+            navigate(`/orgs/${result.organizationId}`)
+          },
+        })
       }}
     >
       <label htmlFor="org-name" className="block text-sm font-medium">
@@ -78,12 +85,14 @@ export function Home() {
       ) : (
         <ul className="mt-3 space-y-2">
           {organizations.map((organization) => (
-            <li
-              key={organization.organizationId}
-              className="flex items-center justify-between rounded border bg-white p-3"
-            >
-              <span className="font-medium">{organization.organizationName}</span>
-              <span className="rounded bg-slate-100 px-2 py-0.5 text-xs">{organization.role}</span>
+            <li key={organization.organizationId}>
+              <Link
+                to={`/orgs/${organization.organizationId}`}
+                className="flex items-center justify-between rounded border bg-white p-3 hover:border-indigo-400"
+              >
+                <span className="font-medium">{organization.organizationName}</span>
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-xs">{organization.role}</span>
+              </Link>
             </li>
           ))}
         </ul>

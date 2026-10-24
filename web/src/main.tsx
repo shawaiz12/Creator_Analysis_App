@@ -1,5 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import { EventType, type AuthenticationResult } from '@azure/msal-browser'
 import { MsalProvider } from '@azure/msal-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -14,7 +15,6 @@ const queryClient = new QueryClient({
 async function start() {
   await msalInstance.initialize()
 
-  // Remember which account is "the" signed-in account, now and after each login.
   const accounts = msalInstance.getAllAccounts()
   if (!msalInstance.getActiveAccount() && accounts.length > 0) {
     msalInstance.setActiveAccount(accounts[0])
@@ -29,7 +29,9 @@ async function start() {
     <StrictMode>
       <MsalProvider instance={msalInstance}>
         <QueryClientProvider client={queryClient}>
-          <App />
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
         </QueryClientProvider>
       </MsalProvider>
     </StrictMode>,
