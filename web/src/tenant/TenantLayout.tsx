@@ -2,6 +2,7 @@ import { NavLink, Outlet, useParams } from 'react-router-dom'
 import { useMe } from '../api/me'
 import { NotFound } from '../screens/NotFound'
 import type { TenantContext } from './useTenant'
+import { canViewAnalytics } from './roles'
 
 export function TenantLayout() {
   const { tenantId = '' } = useParams()
@@ -42,6 +43,11 @@ export function TenantLayout() {
         <NavLink to={`/orgs/${context.tenantId}`} end className={linkClass}>
           Overview
         </NavLink>
+        {canViewAnalytics(context.role) && (
+          <NavLink to={`/orgs/${context.tenantId}/videos`} className={linkClass}>
+            Videos
+          </NavLink>
+        )}
       </nav>
 
       <div className="mt-6">

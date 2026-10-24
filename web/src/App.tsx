@@ -5,6 +5,9 @@ import { Home } from './screens/Home'
 import { NotFound } from './screens/NotFound'
 import { TenantLayout } from './tenant/TenantLayout'
 import { Overview } from './tenant/Overview'
+import { AnalyticsOnly } from './tenant/AnalyticsOnly'
+import { Videos } from './tenant/Videos'
+import { VideoRetention } from './tenant/VideoRetention'
 
 export default function App() {
   const { instance, accounts } = useMsal()
@@ -46,6 +49,10 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/orgs/:tenantId" element={<TenantLayout />}>
               <Route index element={<Overview />} />
+              <Route element={<AnalyticsOnly />}>
+                <Route path="videos" element={<Videos />} />
+                <Route path="videos/:videoId" element={<VideoRetention />} />
+              </Route>
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
