@@ -12,7 +12,7 @@ export type Me = {
   organizations: Membership[]
 }
 
-const meKey = ['me'] as const
+export const meKey = ['me'] as const
 
 export function useMe() {
   return useQuery({ queryKey: meKey, queryFn: () => apiFetch<Me>('/api/me') })

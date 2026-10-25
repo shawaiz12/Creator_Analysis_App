@@ -1,8 +1,10 @@
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react'
 import { Link, Route, Routes } from 'react-router-dom'
 import { apiScopes } from './auth/msal'
+import { PendingInviteRedirect, RememberInvite } from './auth/InviteRedirects'
 import { Home } from './screens/Home'
 import { NotFound } from './screens/NotFound'
+import { AcceptInvitation } from './screens/AcceptInvitation'
 import { TenantLayout } from './tenant/TenantLayout'
 import { Overview } from './tenant/Overview'
 import { AnalyticsOnly } from './tenant/AnalyticsOnly'
@@ -10,6 +12,7 @@ import { Videos } from './tenant/Videos'
 import { VideoRetention } from './tenant/VideoRetention'
 import { Strategies } from './tenant/Strategies'
 import { StrategyDetail } from './tenant/StrategyDetail'
+import { Team } from './tenant/Team'
 
 export default function App() {
   const { instance, accounts } = useMsal()
@@ -37,6 +40,7 @@ export default function App() {
 
       <div className="mx-auto max-w-3xl p-6">
         <UnauthenticatedTemplate>
+          <RememberInvite />
           <p className="text-slate-600">Sign in with your Microsoft account to continue.</p>
           <button
             className="mt-4 rounded bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700"
@@ -47,12 +51,15 @@ export default function App() {
         </UnauthenticatedTemplate>
 
         <AuthenticatedTemplate>
+          <PendingInviteRedirect />
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/invite/:invitationId" element={<AcceptInvitation />} />
             <Route path="/orgs/:tenantId" element={<TenantLayout />}>
               <Route index element={<Overview />} />
               <Route path="strategies" element={<Strategies />} />
               <Route path="strategies/:strategyId" element={<StrategyDetail />} />
+              <Route path="team" element={<Team />} />
               <Route element={<AnalyticsOnly />}>
                 <Route path="videos" element={<Videos />} />
                 <Route path="videos/:videoId" element={<VideoRetention />} />
