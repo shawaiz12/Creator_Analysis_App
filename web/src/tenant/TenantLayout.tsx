@@ -2,7 +2,7 @@ import { NavLink, Outlet, useParams } from 'react-router-dom'
 import { useMe } from '../api/me'
 import { NotFound } from '../screens/NotFound'
 import type { TenantContext } from './useTenant'
-import { canManageTeam, canViewAnalytics } from './roles'
+import { canManageTeam, canViewAnalytics, canViewAudit } from './roles'
 
 export function TenantLayout() {
   const { tenantId = '' } = useParams()
@@ -54,6 +54,11 @@ export function TenantLayout() {
         {canManageTeam(context.role) && (
           <NavLink to={`/orgs/${context.tenantId}/team`} className={linkClass}>
             Team
+          </NavLink>
+        )}
+        {canViewAudit(context.role) && (
+          <NavLink to={`/orgs/${context.tenantId}/audit`} className={linkClass}>
+            Audit
           </NavLink>
         )}
       </nav>

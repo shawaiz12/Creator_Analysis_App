@@ -13,6 +13,7 @@ import { VideoRetention } from './tenant/VideoRetention'
 import { Strategies } from './tenant/Strategies'
 import { StrategyDetail } from './tenant/StrategyDetail'
 import { Team } from './tenant/Team'
+import { Audit } from './tenant/Audit'
 
 export default function App() {
   const { instance, accounts } = useMsal()
@@ -60,6 +61,7 @@ export default function App() {
               <Route path="strategies" element={<Strategies />} />
               <Route path="strategies/:strategyId" element={<StrategyDetail />} />
               <Route path="team" element={<Team />} />
+              <Route path="audit" element={<Audit />} />
               <Route element={<AnalyticsOnly />}>
                 <Route path="videos" element={<Videos />} />
                 <Route path="videos/:videoId" element={<VideoRetention />} />

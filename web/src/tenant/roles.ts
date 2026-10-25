@@ -6,3 +6,4 @@ export const canEditStrategy = (role: string) => role === 'Admin' || role === 'S
 export const canReview = (role: string) => role === 'Admin'
 export const canMarkImplemented = (role: string) => role === 'Admin' || role === 'Editor'
 export const canManageTeam = (role: string) => role === 'Admin'
+export const canViewAudit = (role: string) => role === 'Admin'
