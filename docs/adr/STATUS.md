@@ -5,7 +5,7 @@ Last updated: <put today's date here>
 ## Done (all covered by automated tests)
 
 - **Architecture:** .NET 10 modular monolith with four modules (Identity, Integration,
-  Strategy, Audit), one SQL Server database with a schema per module. Decisions are in
+  Strategy, Audit), one PostgreSQL database with a schema per module. Decisions are in
   `docs/adr`.
 - **Tenant isolation:** the tenant is in the URL; a gatekeeper checks membership on every
   request (404 for non-members); EF query filters fail closed; cross-tenant writes throw a

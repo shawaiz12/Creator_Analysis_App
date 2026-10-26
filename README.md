@@ -6,7 +6,7 @@
 > data, turns it into AI-assisted strategy drafts, and guarantees that **no AI output is
 > used until a human has approved it**.
 
-Built with .NET 10, ASP.NET Core, EF Core and SQL Server. It runs with one command in
+Built with .NET 10, ASP.NET Core, EF Core and PostgreSQL. It runs with one command in
 Docker, builds and tests itself in GitHub Actions, and every major decision is written down
 as an Architecture Decision Record.
 
@@ -49,7 +49,7 @@ One person can belong to several organizations with a different role in each.
 ## Architecture
 
 One deployable application, split into **four modules** that each own their data. They
-share one SQL Server database, but each lives in its own schema.
+share one PostgreSQL database, but each lives in its own schema.
 
 ```mermaid
 flowchart TB
@@ -78,7 +78,7 @@ flowchart TB
     Strategy -->|"outbox messages"| Dispatcher
     Dispatcher -->|"contract"| Audit
 
-    DB[("One SQL Server database<br/>one schema per module")]
+    DB[("One PostgreSQL database<br/>one schema per module")]
     Identity --- DB
     Strategy --- DB
     Integration --- DB
@@ -163,7 +163,7 @@ The solution is the **transactional outbox**:
 sequenceDiagram
     participant Admin
     participant API as Strategy endpoint
-    participant DB as SQL Server
+    participant DB as PostgreSQL
     participant Worker as Outbox dispatcher
     participant Audit as Audit module
 
@@ -270,11 +270,11 @@ flowchart LR
 
     subgraph Compose["docker-compose.yml"]
         API["api container<br/>ASP.NET Core, non-root, port 8080"]
-        SQL[("sqlserver container<br/>SQL Server 2022")]
-        Vol[("volume: sqlserver-data")]
+        SQL[("postgres container<br/>PostgreSQL 15")]
+        Vol[("volume: postgres-data")]
     end
 
-    API -->|"sqlserver:1433"| SQL
+    API -->|"postgres:5432"| SQL
     SQL --- Vol
 ```
 
@@ -288,7 +288,7 @@ flowchart LR
   the database?). The readiness answer says only "cannot be reached", never the error text,
   because exception messages can contain connection details.
 - **Structured logs.** One JSON object per line outside Development, ready for any log tool.
-- **Start-up order handled simply.** The API container restarts on failure until SQL Server is
+- **Start-up order handled simply.** The API container restarts on failure until PostgreSQL is
   ready.
 - **Secrets stay out of the image.** `.env` is git-ignored and listed in `.dockerignore`, so
   `COPY . .` can never copy the password into a layer. Compose only contains `${...}`
@@ -306,7 +306,7 @@ flowchart LR
     Push --> J2
 
     subgraph Actions["GitHub Actions"]
-        J1["build-and-test<br/>restore, build Release, run every test<br/>against a SQL Server service container"]
+        J1["build-and-test<br/>restore, build Release, run every test<br/>against a PostgreSQL service container"]
         J2["docker-build<br/>build the API image"]
     end
 
@@ -314,7 +314,7 @@ flowchart LR
     J2 --> Badge
 ```
 
-- Tests run against a **real SQL Server** started as a service container, the same engine as
+- Tests run against a **real PostgreSQL** started as a service container, the same engine as
   production, not an in-memory fake.
 - The database password lives in a **GitHub repository secret** (`CI_SQL_PASSWORD`), never in
   the workflow file or the repository.
@@ -336,7 +336,7 @@ About 300 automated tests. The expensive ones run against a real database.
 | Project | What it proves |
 | --- | --- |
 | `CreatorAnalytics.ArchitectureTests` | Module boundaries, host boundary, no filter bypass or raw SQL |
-| `CreatorAnalytics.Strategy.Tests` | The state machine, revisions, reviews, concurrency (against SQL Server), tenant isolation, the retention analyzer, prompt builder, output validator, chat generator, input builder and the generation worker |
+| `CreatorAnalytics.Strategy.Tests` | The state machine, revisions, reviews, concurrency (against PostgreSQL), tenant isolation, the retention analyzer, prompt builder, output validator, chat generator, input builder and the generation worker |
 | `CreatorAnalytics.Identity.Tests` | Membership lookup, onboarding, invitations with strict email binding, foreign keys |
 | `CreatorAnalytics.Integration.Tests` | Channels, videos, retention snapshots, idempotent sync, scheduled sync, reconnect handling |
 | `CreatorAnalytics.Api.Tests` | The whole HTTP surface through an in-memory server: sign-in rules, roles, tenant attacks, the outbox pipeline, health endpoints, migrators |
@@ -399,7 +399,7 @@ not a member (or it does not exist), `403` means your role is not allowed.
 ```powershell
 git clone https://github.com/shawaiz12/Creator_Analysis_App.git
 cd Creator_Analysis_App
-copy .env.example .env        # fill in SQL_SA_PASSWORD (and the AUTH_ values to sign in)
+copy .env.example .env        # fill in POSTGRES_PASSWORD (and the AUTH_ values to sign in)
 docker compose up --build -d
 ```
 
@@ -409,15 +409,15 @@ schema is created automatically on first start.
 **Run the test suite** (needs only Docker for the database)
 
 ```powershell
-docker compose up -d sqlserver
-$env:ConnectionStrings__Default = "Server=localhost,14333;Database=CreatorAnalytics;User Id=sa;Password=<your SQL_SA_PASSWORD>;TrustServerCertificate=True"
+compose up -d postgres
+$env:ConnectionStrings__Default = "Host=localhost;Port=5432;Database=creatoranalytics;Username=creator;Password=<your POSTGRES_PASSWORD>"
 dotnet test
 ```
 
 **Develop with `dotnet run`**
 
 ```powershell
-docker compose up -d sqlserver
+compose up -d postgres
 dotnet user-secrets set "ConnectionStrings:Default" "Server=localhost,14333;Database=CreatorAnalytics;User Id=sa;Password=<password>;TrustServerCertificate=True" --project src\Host\CreatorAnalytics.Api
 $env:ASPNETCORE_ENVIRONMENT = "Development"
 dotnet ef database update --project src\Modules\Strategy\CreatorAnalytics.Strategy --startup-project src\Host\CreatorAnalytics.Api --context StrategyDbContext
@@ -508,12 +508,12 @@ tests/
   CreatorAnalytics.Api.Tests
 docs/adr                               decision records
 Dockerfile                             multi-stage, non-root runtime image
-docker-compose.yml                     SQL Server and the API
+docker-compose.yml                    PostgreSQL and the API
 .github/workflows/ci.yml               build, test, image build
 ```
 
 ## Tech
 
-.NET 10 · ASP.NET Core minimal APIs · EF Core · SQL Server 2022 · Microsoft Entra ID ·
+.NET 10 · ASP.NET Core minimal APIs · EF Core · PostgreSQL 15 · Microsoft Entra ID ·
 `Microsoft.Extensions.AI` with Ollama (OllamaSharp) · Docker and Compose · GitHub Actions ·
 xUnit · NetArchTest
