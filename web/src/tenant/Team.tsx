@@ -1,5 +1,12 @@
 import { useState } from 'react'
-import { useCreateInvitation, useInvitations, useRevokeInvitation, type Invitation } from '../api/team'
+import { useMe } from '../api/me'
+import {
+  useCreateInvitation,
+  useInvitations,
+  useMembers,
+  useRevokeInvitation,
+  type Invitation,
+} from '../api/team'
 import { canManageTeam } from './roles'
 import { useTenant } from './useTenant'
 
@@ -126,11 +133,43 @@ function InvitationRow({ invitation, tenantId }: { invitation: Invitation; tenan
   )
 }
 
+function MemberList({ tenantId }: { tenantId: string }) {
+  const members = useMembers(tenantId)
+  const me = useMe()
+  const myEmail = me.data?.email?.toLowerCase()
+
+  return (
+    <section>
+      <h3 className="text-lg font-semibold">Members</h3>
+
+      {members.isPending && <p className="mt-2 text-slate-500">Loading members…</p>}
+      {members.isError && <p className="mt-2 text-red-700">{members.error.message}</p>}
+
+      {members.data && (
+        <ul className="mt-3 space-y-2">
+          {members.data.map((member) => (
+            <li key={member.userId} className="flex items-center justify-between rounded border bg-white p-3">
+              <span className="font-medium">
+                {member.email}
+                {member.email.toLowerCase() === myEmail && (
+                  <span className="ml-2 text-xs font-normal text-slate-500">(you)</span>
+                )}
+              </span>
+              <span className="rounded bg-slate-100 px-2 py-0.5 text-xs">{member.role}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
 function TeamAdmin({ tenantId }: { tenantId: string }) {
   const invitations = useInvitations(tenantId)
 
   return (
     <div className="space-y-6">
+      <MemberList tenantId={tenantId} />
       <InviteForm tenantId={tenantId} />
 
       <section>

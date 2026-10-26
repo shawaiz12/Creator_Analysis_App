@@ -55,3 +55,12 @@ export function useAcceptInvitation() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: meKey }),
   })
 }
+
+export type Member = { userId: string; email: string; role: string }
+
+export function useMembers(tenantId: string) {
+  return useQuery({
+    queryKey: tenantKey(tenantId, 'members'),
+    queryFn: () => tenantFetch<Member[]>(tenantId, '/members'),
+  })
+}

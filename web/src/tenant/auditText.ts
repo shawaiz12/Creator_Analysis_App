@@ -47,13 +47,14 @@ export function describeEntry(entry: AuditEntry): string {
 }
 
 // Who did it. Only ids are recorded, so until a members list exists we show a short id.
-export function actorOf(entry: AuditEntry): string {
+// Who did it. Falls back to a short id when the person is not in the members list.
+export function actorOf(entry: AuditEntry, emailOf: (userId: string) => string | undefined): string {
   if (entry.eventType === 'StrategyRevisionAddedEvent' && field(entry.data, 'origin') === 'Ai') return 'AI'
 
   const names = ['reviewerId', 'submittedByUserId', 'implementedByUserId', 'requestedByUserId', 'authorUserId']
   for (const name of names) {
     const id = text(field(entry.data, name))
-    if (id) return `User ${id.slice(0, 8)}`
+    if (id) return emailOf(id) ?? `User ${id.slice(0, 8)}`
   }
   return 'System'
 }

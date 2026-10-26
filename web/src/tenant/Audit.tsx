@@ -4,8 +4,17 @@ import { AUDIT_PAGE_SIZE, useAudit, type AuditEntry } from '../api/audit'
 import { actorOf, describeEntry, documentIdOf } from './auditText'
 import { canViewAudit } from './roles'
 import { useTenant } from './useTenant'
+import { useMembers } from '../api/team'
 
-function AuditRow({ entry, tenantId }: { entry: AuditEntry; tenantId: string }) {
+function AuditRow({
+  entry,
+  tenantId,
+  emailOf,
+}: {
+  entry: AuditEntry
+  tenantId: string
+  emailOf: (userId: string) => string | undefined
+}) {
   const documentId = documentIdOf(entry)
   const raw = typeof entry.data === 'string' ? entry.data : JSON.stringify(entry.data, null, 2)
 
@@ -16,7 +25,7 @@ function AuditRow({ entry, tenantId }: { entry: AuditEntry; tenantId: string }) 
           {/* Plain text on purpose: rejection reasons are typed by people. */}
           <p className="font-medium">{describeEntry(entry)}</p>
           <p className="text-xs text-slate-500">
-            {actorOf(entry)} · {new Date(entry.recordedAtUtc).toLocaleString()}
+            {actorOf(entry, emailOf)} · {new Date(entry.recordedAtUtc).toLocaleString()}
           </p>
         </div>
         {documentId && (
@@ -43,6 +52,9 @@ function AuditAdmin({ tenantId }: { tenantId: string }) {
   const audit = useAudit(tenantId, page, live)
 
   const entries = audit.data ?? []
+  const members = useMembers(tenantId)
+  const emails = new Map((members.data ?? []).map((member): [string, string] => [member.userId.toLowerCase(), member.email]))
+  const emailOf = (userId: string) => emails.get(userId.toLowerCase())
 
   return (
     <div>
@@ -73,7 +85,7 @@ function AuditAdmin({ tenantId }: { tenantId: string }) {
       {entries.length > 0 && (
         <ul className="mt-3 space-y-2">
           {entries.map((entry) => (
-            <AuditRow key={entry.id} entry={entry} tenantId={tenantId} />
+            <AuditRow key={entry.id} entry={entry} tenantId={tenantId} emailOf={emailOf} />
           ))}
         </ul>
       )}
