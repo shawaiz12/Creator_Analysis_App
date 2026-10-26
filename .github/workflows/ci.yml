@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
-        services:
+    services:
       postgres:
         image: postgres:15-alpine
         env:
@@ -33,13 +33,7 @@ jobs:
       DOTNET_CLI_TELEMETRY_OPTOUT: true
 
     steps:
-
-        run: |
-          for i in $(seq 1 40); do
-            if (echo > /dev/tcp/127.0.0.1/1433) 2>/dev/null; then break; fi
-            sleep 3
-          done
-          sleep 20
+      - uses: actions/checkout@v4
 
       - name: Restore
         run: dotnet restore
@@ -50,7 +44,8 @@ jobs:
       - name: Test
         run: dotnet test --no-build --configuration Release --verbosity normal
         env:
-          ConnectionStrings__Default: "Host=localhost;Port=5432;Database=creatoranalytics_ci;Username=creator;Password=${{ secrets.CI_SQL_PASSWORD }}" }};TrustServerCertificate=True"
+          ConnectionStrings__Default: "Host=localhost;Port=5432;Database=creatoranalytics_ci;Username=creator;Password=${{ secrets.CI_SQL_PASSWORD }}"
+
   docker-build:
     runs-on: ubuntu-latest
     steps:
