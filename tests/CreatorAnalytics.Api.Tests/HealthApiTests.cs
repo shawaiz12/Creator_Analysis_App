@@ -42,7 +42,7 @@ public class HealthApiTests : IClassFixture<ApiFactory>
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:Default"] =
-                    "Server=localhost,1;Database=x;User Id=sa;Password=Super_Secret_1;Connect Timeout=2;TrustServerCertificate=True"
+                    "Host=localhost;Port=1;Database=x;Username=creator;Password=Super_Secret_1;Timeout=2"
             })
             .Build();
 

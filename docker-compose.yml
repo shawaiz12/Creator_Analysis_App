@@ -1,26 +1,32 @@
 services:
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: creatoranalytics-sql
+  postgres:
+    image: postgres:15-alpine
+    container_name: creatoranalytics-db
     environment:
-      ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: ${SQL_SA_PASSWORD}
+      POSTGRES_USER: creator
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: creatoranalytics
     ports:
-      - "14333:1433"
+      - "5432:5432"
     volumes:
-      - sqlserver-data:/var/opt/mssql
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U creator -d creatoranalytics"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   api:
     build: .
     container_name: creatoranalytics-api
     depends_on:
-      - sqlserver
-    # The API may start before SQL Server is ready; restarting until it is ready is the simple fix.
+      postgres:
+        condition: service_healthy
     restart: on-failure
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       Database__MigrateOnStartup: "true"
-      ConnectionStrings__Default: "Server=sqlserver,1433;Database=CreatorAnalytics;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=creatoranalytics;Username=creator;Password=${POSTGRES_PASSWORD}"
       Authentication__Authority: ${AUTH_AUTHORITY:-}
       Authentication__Audience: ${AUTH_AUDIENCE:-}
       Cors__AllowedOrigins__0: "http://localhost:5173"
@@ -28,4 +34,4 @@ services:
       - "8080:8080"
 
 volumes:
-  sqlserver-data:
+  postgres-data:

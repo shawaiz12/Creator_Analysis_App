@@ -13,7 +13,7 @@ public static class AuditModule
         this IServiceCollection services, string connectionString)
     {
         services.AddDbContext<AuditDbContext>(options =>
-            options.UseSqlServer(connectionString, sql =>
+            options.UseNpgsql(connectionString, sql =>
                 sql.MigrationsHistoryTable("__EFMigrationsHistory", AuditDbContext.Schema)));
 
         services.AddScoped<IAuditQueryService, AuditQueryService>();

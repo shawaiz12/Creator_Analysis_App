@@ -1,5 +1,5 @@
 using CreatorAnalytics.Strategy.Infrastructure;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using CreatorAnalytics.Identity.Contracts.Services;
@@ -24,9 +24,9 @@ namespace CreatorAnalytics.Strategy.Tests
 
             var baseConnection = config.GetConnectionString("Default")
                 ?? throw new InvalidOperationException("Connection string default not found in user secrets.");
-            var builder = new SqlConnectionStringBuilder(baseConnection)
+            var builder = new NpgsqlConnectionStringBuilder(baseConnection)
             {
-                InitialCatalog = $"CreatorAnalytics_Test_{Guid.NewGuid():N}"
+                Database = $"ca_strategy_{Guid.NewGuid():N}"
             };
             _connectionString = builder.ConnectionString;
 
@@ -38,7 +38,7 @@ namespace CreatorAnalytics.Strategy.Tests
         protected StrategyDbContext NewContext(Guid? tenantId = null)
         {
             var options = new DbContextOptionsBuilder<StrategyDbContext>()
-                .UseSqlServer(_connectionString, sql =>
+                .UseNpgsql(_connectionString, sql =>
                     sql.MigrationsHistoryTable("__EFMigrationsHistory", StrategyDbContext.Schema))
                 .Options;
 
@@ -54,7 +54,7 @@ namespace CreatorAnalytics.Strategy.Tests
             services.AddScoped<TenantContext>();
             services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
             services.AddDbContext<StrategyDbContext>(options =>
-                options.UseSqlServer(_connectionString, sql =>
+                options.UseNpgsql(_connectionString, sql =>
                     sql.MigrationsHistoryTable("__EFMigrationsHistory", StrategyDbContext.Schema)));
             services.AddSingleton<IVideoAnalyticsQuery>(videos);
             services.AddSingleton<IInsightGenerator>(generator);
@@ -68,6 +68,7 @@ namespace CreatorAnalytics.Strategy.Tests
 
         public void Dispose()
         {
+            NpgsqlConnection.ClearAllPools();
             using var context = NewContext();
             context.Database.EnsureDeleted();
         }

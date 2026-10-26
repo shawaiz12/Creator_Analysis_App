@@ -164,7 +164,7 @@ public class StrategyPersistenceTests : DatabaseTestBase
         using var read = NewContext(_tenantId);
         var loaded = Load(read, document.Id);
 
-        Assert.Equal(document.CreatedAtUtc, loaded.CreatedAtUtc);
+        Assert.Equal(document.CreatedAtUtc, loaded.CreatedAtUtc, TimeSpan.FromMilliseconds(1));
     }
     [Fact]
     public void A_Generation_Request_Round_Trips_Together_With_Its_Ai_Draft()

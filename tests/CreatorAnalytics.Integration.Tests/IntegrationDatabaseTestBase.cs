@@ -1,5 +1,5 @@
 using CreatorAnalytics.Integration.Infrastructure;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using CreatorAnalytics.Identity.Contracts.Services;
@@ -24,10 +24,12 @@ public abstract class IntegrationDatabaseTestBase : IDisposable
         var baseConnection = config.GetConnectionString("Default")
             ?? throw new InvalidOperationException("Connection string 'Default' not found in user secrets.");
 
-        _connectionString = new SqlConnectionStringBuilder(baseConnection)
+        var builder = new NpgsqlConnectionStringBuilder(baseConnection)
         {
-            InitialCatalog = $"CreatorAnalytics_IntegrationTest_{Guid.NewGuid():N}"
-        }.ConnectionString;
+            Database = $"creatoranalytics_integrationtest_{Guid.NewGuid():N}"
+        };
+
+        _connectionString = builder.ConnectionString;
 
         using var context = NewContext(null);
         context.Database.Migrate();
@@ -36,7 +38,7 @@ public abstract class IntegrationDatabaseTestBase : IDisposable
     protected IntegrationDbContext NewContext(Guid? tenantId)
     {
         var options = new DbContextOptionsBuilder<IntegrationDbContext>()
-            .UseSqlServer(_connectionString, sql =>
+            .UseNpgsql(_connectionString, sql =>
                 sql.MigrationsHistoryTable("__EFMigrationsHistory", IntegrationDbContext.Schema))
             .Options;
 
@@ -51,7 +53,7 @@ public abstract class IntegrationDatabaseTestBase : IDisposable
         services.AddScoped<TenantContext>();
         services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantContext>());
         services.AddDbContext<IntegrationDbContext>(options =>
-            options.UseSqlServer(_connectionString, sql =>
+            options.UseNpgsql(_connectionString, sql =>
                 sql.MigrationsHistoryTable("__EFMigrationsHistory", IntegrationDbContext.Schema)));
         services.AddSingleton(client);
         services.AddScoped<ChannelSyncService>();

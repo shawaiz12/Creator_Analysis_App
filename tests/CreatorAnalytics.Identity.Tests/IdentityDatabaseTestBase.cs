@@ -1,7 +1,7 @@
 using CreatorAnalytics.Identity.Infrastructure;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 
 namespace CreatorAnalytics.Identity.Tests;
 
@@ -19,9 +19,10 @@ public abstract class IdentityDatabaseTestBase : IDisposable
         var baseConnection = config.GetConnectionString("Default")
             ?? throw new InvalidOperationException("Connection string 'Default' not found in user secrets.");
 
-        _connectionString = new SqlConnectionStringBuilder(baseConnection)
+        // PostgreSQL limits database names to 63 characters, so keep the prefix short.
+        _connectionString = new NpgsqlConnectionStringBuilder(baseConnection)
         {
-            InitialCatalog = $"CreatorAnalytics_IdentityTest_{Guid.NewGuid():N}"
+            Database = $"ca_identity_{Guid.NewGuid():N}"
         }.ConnectionString;
 
         using var context = NewContext();
@@ -31,7 +32,7 @@ public abstract class IdentityDatabaseTestBase : IDisposable
     protected IdentityDbContext NewContext()
     {
         var options = new DbContextOptionsBuilder<IdentityDbContext>()
-            .UseSqlServer(_connectionString, sql =>
+            .UseNpgsql(_connectionString, sql =>
                 sql.MigrationsHistoryTable("__EFMigrationsHistory", IdentityDbContext.Schema))
             .Options;
 
@@ -40,6 +41,9 @@ public abstract class IdentityDatabaseTestBase : IDisposable
 
     public void Dispose()
     {
+        // Pooled connections would keep the temporary database busy, so close them first.
+        NpgsqlConnection.ClearAllPools();
+
         using var context = NewContext();
         context.Database.EnsureDeleted();
     }

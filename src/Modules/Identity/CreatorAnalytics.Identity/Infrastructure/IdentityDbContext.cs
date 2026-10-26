@@ -64,7 +64,7 @@ public class IdentityDbContext : DbContext
             // At most one open invitation per email per organization.
             b.HasIndex(x => new { x.TenantId, x.Email })
                 .IsUnique()
-                .HasFilter("[Status] = 'Pending'");
+                .HasFilter("\"Status\" = 'Pending'");
         });
     }
 }
