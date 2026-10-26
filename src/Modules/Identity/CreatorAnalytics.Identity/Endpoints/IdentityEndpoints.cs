@@ -9,5 +9,6 @@ public static class IdentityEndpoints
         app.MapOnboardingEndpoints();
         app.MapInvitationEndpoints();
         app.MapMeEndpoints();
+        app.MapMemberEndpoints();
     }
 }

@@ -30,4 +30,22 @@ public sealed class MembershipQueryService : IMembershipQueryService
             .Select(r => new MembershipInfo(r.OrganizationId, r.Name, r.Role.ToString()))
             .ToList();
     }
+
+    public async Task<IReadOnlyList<OrganizationMember>> ListMembersAsync(
+        Guid tenantId, CancellationToken cancellationToken = default)
+    {
+        // TenantMembership is exempt from the automatic tenant filter, so this Where is what
+        // keeps organizations apart. Do not remove it.
+        var rows = await _context.TenantMemberships
+            .AsNoTracking()
+            .Where(m => m.TenantId == tenantId)
+            .Join(_context.Users, m => m.UserId, u => u.Id,
+                (m, u) => new { UserId = u.Id, u.Email, m.Role })
+            .OrderBy(x => x.Email)
+            .ToListAsync(cancellationToken);
+
+        return rows
+            .Select(r => new OrganizationMember(r.UserId, r.Email, r.Role.ToString()))
+            .ToList();
+    }
 }
