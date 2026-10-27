@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Npgsql;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace CreatorAnalytics.Api.Health;
@@ -20,7 +20,7 @@ public sealed class DatabaseHealthCheck : IHealthCheck
 
         try
         {
-            await using var connection = new SqlConnection(_connectionString);
+            await using var connection = new NpgsqlConnection(_connectionString);
             await connection.OpenAsync(cancellationToken);
 
             await using var command = connection.CreateCommand();

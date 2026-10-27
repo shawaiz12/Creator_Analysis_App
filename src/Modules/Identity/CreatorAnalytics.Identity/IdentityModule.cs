@@ -14,7 +14,7 @@ public static class IdentityModule
         this IServiceCollection services, string connectionString)
     {
         services.AddDbContext<IdentityDbContext>(options =>
-            options.UseSqlServer(connectionString, sql =>
+            options.UseNpgsql(connectionString, sql =>
                 sql.MigrationsHistoryTable("__EFMigrationsHistory", IdentityDbContext.Schema)));
 
         services.AddScoped<ITenantAccessService, TenantAccessService>();

@@ -15,7 +15,7 @@ public static class IntegrationModule
         this IServiceCollection services, string connectionString)
     {
         services.AddDbContext<IntegrationDbContext>(options =>
-            options.UseSqlServer(connectionString, sql =>
+            options.UseNpgsql(connectionString, sql =>
                 sql.MigrationsHistoryTable("__EFMigrationsHistory", IntegrationDbContext.Schema)));
 
         // The fake stands in for YouTube until the real Google client exists.

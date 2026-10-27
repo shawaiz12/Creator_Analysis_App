@@ -13,7 +13,14 @@ namespace CreatorAnalytics.Strategy.Infrastructure
 
             builder.Property(x => x.Id).ValueGeneratedNever();
 
-            builder.Property(x => x.RowVersion).IsRowVersion();
+            // PostgreSQL has no 'rowversion' column. Its equivalent is the hidden system column 'xmin':
+            // the id of the transaction that last changed the row. EF Core checks it on every update,
+            // so a stale save is refused exactly as before.
+            builder.Property(x => x.RowVersion)
+                .HasColumnName("xmin")
+                .HasColumnType("xid")
+                .ValueGeneratedOnAddOrUpdate()
+                .IsConcurrencyToken();
 
             builder.Property(x => x.Status)
                 .HasConversion<string>()
@@ -118,7 +125,7 @@ namespace CreatorAnalytics.Strategy.Infrastructure
             // even if two requests arrive at the same moment.
             builder.HasIndex(x => x.StrategyDocumentId)
                 .IsUnique()
-                .HasFilter("[Status] = 'Pending'");
+                .HasFilter("\"Status\" = 'Pending'");
         }
     }
 }

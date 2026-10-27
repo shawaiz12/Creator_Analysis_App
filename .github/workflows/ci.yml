@@ -14,13 +14,19 @@ jobs:
     timeout-minutes: 30
 
     services:
-      sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest
+      postgres:
+        image: postgres:15-alpine
         env:
-          ACCEPT_EULA: "Y"
-          MSSQL_SA_PASSWORD: ${{ secrets.CI_SQL_PASSWORD }}
+          POSTGRES_USER: creator
+          POSTGRES_PASSWORD: ${{ secrets.CI_SQL_PASSWORD }}
+          POSTGRES_DB: creatoranalytics_ci
         ports:
-          - 1433:1433
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U creator -d creatoranalytics_ci"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
 
     env:
       DOTNET_NOLOGO: true
@@ -28,18 +34,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-
-      - name: Wait for SQL Server
-        run: |
-          for i in $(seq 1 40); do
-            if (echo > /dev/tcp/127.0.0.1/1433) 2>/dev/null; then break; fi
-            sleep 3
-          done
-          sleep 20
 
       - name: Restore
         run: dotnet restore
@@ -50,7 +44,8 @@ jobs:
       - name: Test
         run: dotnet test --no-build --configuration Release --verbosity normal
         env:
-          ConnectionStrings__Default: "Server=localhost,1433;Database=CreatorAnalytics_CI;User Id=sa;Password=${{ secrets.CI_SQL_PASSWORD }};TrustServerCertificate=True"
+          ConnectionStrings__Default: "Host=localhost;Port=5432;Database=creatoranalytics_ci;Username=creator;Password=${{ secrets.CI_SQL_PASSWORD }}"
+
   docker-build:
     runs-on: ubuntu-latest
     steps:

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,9 +38,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         var baseConnection = config.GetConnectionString("Default")
             ?? throw new InvalidOperationException("Connection string 'Default' not found in user secrets.");
 
-        var testConnection = new SqlConnectionStringBuilder(baseConnection)
+        var testConnection = new NpgsqlConnectionStringBuilder(baseConnection)
         {
-            InitialCatalog = $"CreatorAnalytics_ApiTest_{Guid.NewGuid():N}"
+            Database = $"ca_api_{Guid.NewGuid():N}"
         }.ConnectionString;
 
         _testConnection = testConnection;
@@ -171,21 +171,19 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 
     private void DropTestDatabase()
     {
-        var builder = new SqlConnectionStringBuilder(_testConnection);
-        var database = builder.InitialCatalog;
-        builder.InitialCatalog = "master";
+        var builder = new NpgsqlConnectionStringBuilder(_testConnection);
+        var database = builder.Database;
+        builder.Database = "postgres";
 
-        using var connection = new SqlConnection(builder.ConnectionString);
+        NpgsqlConnection.ClearAllPools();
+
+        using var connection = new NpgsqlConnection(builder.ConnectionString);
         connection.Open();
 
         using var command = connection.CreateCommand();
-        command.CommandText =
-            $"IF DB_ID(N'{database}') IS NOT NULL " +
-            $"BEGIN ALTER DATABASE [{database}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; " +
-            $"DROP DATABASE [{database}]; END";
+        command.CommandText = $"DROP DATABASE IF EXISTS \"{database}\" WITH (FORCE)";
         command.ExecuteNonQuery();
     }
-
     public Task<int> RunOutboxAsync() =>
     Services.GetRequiredService<OutboxDispatcher>().ProcessPendingAsync();
 

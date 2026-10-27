@@ -19,14 +19,15 @@ namespace CreatorAnalytics.Integration.Infrastructure.Migrations
                 schema: "integration",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    YouTubeChannelId = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    ConnectedByUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ConnectedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    LastSyncedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TenantId = table.Column<Guid>(type: "uuid", nullable: false),
+                    YouTubeChannelId = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    ConnectedByUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ConnectedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    LastSyncedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    LastSyncAttemptAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -38,15 +39,15 @@ namespace CreatorAnalytics.Integration.Infrastructure.Migrations
                 schema: "integration",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ChannelConnectionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    YouTubeVideoId = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
-                    PublishedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DurationSeconds = table.Column<int>(type: "int", nullable: false),
-                    Transcript = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    LastSyncedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TenantId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ChannelConnectionId = table.Column<Guid>(type: "uuid", nullable: false),
+                    YouTubeVideoId = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: false),
+                    Title = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
+                    PublishedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DurationSeconds = table.Column<int>(type: "integer", nullable: false),
+                    Transcript = table.Column<string>(type: "text", nullable: true),
+                    LastSyncedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -65,11 +66,11 @@ namespace CreatorAnalytics.Integration.Infrastructure.Migrations
                 schema: "integration",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TenantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    VideoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    FetchedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    PointsJson = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TenantId = table.Column<Guid>(type: "uuid", nullable: false),
+                    VideoId = table.Column<Guid>(type: "uuid", nullable: false),
+                    FetchedAtUtc = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    PointsJson = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {

@@ -19,7 +19,7 @@ namespace CreatorAnalytics.Strategy.Domain
         public DateTime CreatedAtUtc { get; private set; }
         public DateTime LastModifiedAtUtc { get; private set; }
 
-        public byte[] RowVersion { get; private set; } = Array.Empty<byte>();
+        public uint RowVersion { get; private set; }
 
         public StrategyDocument(Guid tenantId, Guid videoId)
         {

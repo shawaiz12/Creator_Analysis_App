@@ -14,7 +14,7 @@ public static class StrategyModule
         this IServiceCollection services, string connectionString)
     {
         services.AddDbContext<StrategyDbContext>(options =>
-            options.UseSqlServer(connectionString, sql =>
+            options.UseNpgsql(connectionString, sql =>
                 sql.MigrationsHistoryTable("__EFMigrationsHistory", StrategyDbContext.Schema)));
 
         services.AddScoped<IStrategyOutbox, StrategyOutboxService>();
