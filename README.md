@@ -517,3 +517,12 @@ docker-compose.yml                    PostgreSQL and the API
 .NET 10 · ASP.NET Core minimal APIs · EF Core · PostgreSQL 15 · Microsoft Entra ID ·
 `Microsoft.Extensions.AI` with Ollama (OllamaSharp) · Docker and Compose · GitHub Actions ·
 xUnit · NetArchTest
+
+## Live demo
+
+- App: https://contentdock-nine.vercel.app
+- API health: https://creatoranalytics-api.onrender.com/health/live
+
+Hosted entirely on free tiers (Vercel, Render, Neon), so the API sleeps after 15 minutes
+without traffic. **The first load after idle can take about a minute** while it wakes up.
+Background workers only run while it is awake. See ADR 0008.
