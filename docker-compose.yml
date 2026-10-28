@@ -30,6 +30,9 @@ services:
       Authentication__Authority: ${AUTH_AUTHORITY:-}
       Authentication__Audience: ${AUTH_AUDIENCE:-}
       Cors__AllowedOrigins__0: "http://localhost:5173"
+      Ai__Provider: ${AI_PROVIDER:-}
+      Ai__Model: ${AI_MODEL:-}
+      Ai__ApiKey: ${AI_API_KEY:-}
     ports:
       - "8080:8080"
 

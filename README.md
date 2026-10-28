@@ -239,24 +239,28 @@ The design is built around one fact: **model output is untrusted, and so is the 
 | A race with a human | A draft cannot be added to a strategy that has moved on to review; the request fails with a clear message |
 | Earlier mistakes repeat | Rejection reasons for the same video become constraints in the next prompt (context for one request, not training) |
 
-### Local AI, no API bill
+
+
+### AI provider
 
 The generator talks to the model through the provider-neutral `IChatClient` abstraction
-(`Microsoft.Extensions.AI`), so the provider is configuration. Development uses a **free
-local model through [Ollama](https://ollama.com)**, and nothing leaves your machine.
+(`Microsoft.Extensions.AI`), so the provider is configuration. The deployed demo uses the
+**free Google Gemini API** through its OpenAI-compatible endpoint. Any OpenAI-compatible
+provider (Groq, Cerebras, OpenRouter, Mistral) works by changing only the settings.
 
 ```powershell
-ollama pull phi3:mini
-dotnet user-secrets set "Ai:Provider" "Ollama" --project src\Host\CreatorAnalytics.Api
-dotnet user-secrets set "Ai:Model" "phi3:mini" --project src\Host\CreatorAnalytics.Api
+dotnet user-secrets set "Ai:Provider" "Gemini" --project src\Host\CreatorAnalytics.Api
+dotnet user-secrets set "Ai:Model" "gemini-3.8-flash" --project src\Host\CreatorAnalytics.Api
+dotnet user-secrets set "Ai:ApiKey" "<your key>" --project src\Host\CreatorAnalytics.Api
 ```
 
-With no `Ai:Provider` set, the deterministic template writer is used. Switching to a cloud
-provider means changing one registration in `Program.cs`; the rest of the code does not
-change. **Automated tests never call a model**: a fake chat client covers success, every
-error class and bad output, and the API tests are pinned to the template writer.
-See [ADR 0005](docs/adr/0005-ai-insight-generation.md) and
-[ADR 0006](docs/adr/0006-real-ai-generator.md).
+With no `Ai:Provider` set, the deterministic template writer is used. **Automated tests never
+call a model**: a fake chat client covers success, every error class and bad output, and the
+API tests are pinned to the template writer. Free-tier prompts may be used by Google to improve
+its products, so only demo data should go through the demo key.
+See [ADR 0005](docs/adr/0005-ai-insight-generation.md),
+[ADR 0006](docs/adr/0006-real-ai-generator.md) and
+[ADR 0009](docs/adr/0009-gemini-through-openai-compatible-client.md).
 
 ---
 
@@ -475,10 +479,9 @@ consequences:
 
 Being honest about scope matters more than a long feature list:
 
-- **No real YouTube connection.** The Integration module runs against a deterministic fake
-  client behind `IYouTubeClient`. Connecting a channel is a development shortcut. The real
-  Google sign-in flow is designed (ADR 0004) but not implemented, including handling the
-  seven-day refresh-token expiry that Google applies to apps in testing mode.
+-- **The AI runs on a free Gemini key.** Free-tier limits are not published per model and can
+  change, and the provider's OpenAI-compatibility layer is labelled beta by Google.
+- **Free-tier hosting.** The API sleeps when idle and wakes in about a minute (ADR 0008).
 - **No cloud AI provider has been tried.** The generator is verified against a local Ollama
   model; a hosted provider is one configuration change, untested.
 - **No user interface.** It is an API; the examples use PowerShell.
@@ -515,7 +518,7 @@ docker-compose.yml                    PostgreSQL and the API
 ## Tech
 
 .NET 10 · ASP.NET Core minimal APIs · EF Core · PostgreSQL 15 · Microsoft Entra ID ·
-`Microsoft.Extensions.AI` with Ollama (OllamaSharp) · Docker and Compose · GitHub Actions ·
+`Microsoft.Extensions.AI` with Gemini (OpenAI-compatible) · Docker and Compose · GitHub Actions ·
 xUnit · NetArchTest
 
 ## Live demo

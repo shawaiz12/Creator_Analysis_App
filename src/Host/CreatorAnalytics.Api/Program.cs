@@ -12,10 +12,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using CreatorAnalytics.Integration;
 using CreatorAnalytics.Integration.Endpoints;
 using Microsoft.Extensions.AI;
-using OllamaSharp;
 using CreatorAnalytics.Api.Health;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using CreatorAnalytics.SharedKernel.Data;
+using CreatorAnalytics.Api.Ai;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,6 +32,7 @@ builder.Services.AddScoped<ITenantContext>(sp => sp.GetRequiredService<TenantCon
 builder.Services.AddScoped<CurrentUser>();
 builder.Services.AddScoped<ICurrentUser>(sp => sp.GetRequiredService<CurrentUser>());
 
+
 var connectionString = builder.Configuration.GetConnectionString("Default")
     ?? throw new InvalidOperationException("Connection string 'Default' is missing.");
 
@@ -40,24 +41,10 @@ builder.Services.AddStrategyModule(connectionString);
 builder.Services.AddIdentityModule(connectionString);
 builder.Services.AddAuditModule(connectionString);
 builder.Services.AddIntegrationModule(connectionString);
-
 // Optional AI provider. With no Ai:Provider configured, the template writer stays in use.
-if (string.Equals(builder.Configuration["Ai:Provider"], "Ollama", StringComparison.OrdinalIgnoreCase))
-{
-    var endpoint = builder.Configuration["Ai:Endpoint"] ?? "http://localhost:11434";
-    var model = builder.Configuration["Ai:Model"]
-        ?? throw new InvalidOperationException("Ai:Model is required when Ai:Provider is set.");
-    var timeoutSeconds = int.TryParse(builder.Configuration["Ai:TimeoutSeconds"], out var parsed) ? parsed : 180;
+builder.Services.AddConfiguredAi(builder.Configuration);
 
-    var http = new HttpClient
-    {
-        BaseAddress = new Uri(endpoint),
-        Timeout = TimeSpan.FromSeconds(timeoutSeconds)
-    };
 
-    builder.Services.AddSingleton<IChatClient>(new OllamaApiClient(http, model));
-    builder.Services.UseChatInsightGenerator();
-}
 // JWT bearer authentication (Microsoft Entra ID).
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
