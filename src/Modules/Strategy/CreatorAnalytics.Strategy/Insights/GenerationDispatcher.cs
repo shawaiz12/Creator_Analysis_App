@@ -109,6 +109,10 @@ public sealed class GenerationDispatcher
         }
         catch (InsightGenerationException ex)
         {
+            _logger.LogWarning(ex,
+                "Draft generation failed for request {RequestId} (transient: {Transient})",
+                item.RequestId, ex.IsTransient);
+
             await RecordFailureAsync(tenantId, item, ex.Message, !ex.IsTransient, nowUtc, cancellationToken);
         }
         catch (TenantViolationException ex)
