@@ -33,6 +33,7 @@ services:
       Ai__Provider: ${AI_PROVIDER:-}
       Ai__Model: ${AI_MODEL:-}
       Ai__ApiKey: ${AI_API_KEY:-}
+      Ai__FallbackModel: ${AI_FALLBACK_MODEL:-}
     ports:
       - "8080:8080"
 

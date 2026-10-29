@@ -29,3 +29,4 @@ plus 1,500 tokens of output.
 - Free-tier limits are not published per model and can change; the model name is configuration.
 - Google labels the OpenAI-compatibility layer beta. A community Gemini package is the fallback.
 - Gemini models spend output tokens on thinking; if drafts are cut off, raise the output cap.
+An optional second model (Ai:FallbackModel) is tried when the first returns a server error, a quota error or no answer; configuration errors are never retried.

@@ -45,9 +45,22 @@ public static class AiServiceCollectionExtensions
                 NetworkTimeout = TimeSpan.FromSeconds(timeoutSeconds)
             });
 
-        IChatClient chat = new StatusMappingChatClient(client.GetChatClient(model).AsIChatClient());
+        var fallbackModel = configuration["Ai:FallbackModel"];
+        var useFallback = !string.IsNullOrWhiteSpace(fallbackModel)
+            && !string.Equals(fallbackModel, model, StringComparison.OrdinalIgnoreCase);
 
-        services.AddSingleton<IChatClient>(chat);
+        services.AddSingleton<IChatClient>(sp =>
+        {
+            IChatClient primary = new StatusMappingChatClient(client.GetChatClient(model).AsIChatClient());
+
+            if (!useFallback)
+                return primary;
+
+            IChatClient fallback = new StatusMappingChatClient(client.GetChatClient(fallbackModel!).AsIChatClient());
+
+            return new FallbackChatClient(primary, fallback, sp.GetRequiredService<ILogger<FallbackChatClient>>());
+        });
+
         services.UseChatInsightGenerator();
 
         return services;

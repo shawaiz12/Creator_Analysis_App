@@ -252,6 +252,7 @@ provider (Groq, Cerebras, OpenRouter, Mistral) works by changing only the settin
 dotnet user-secrets set "Ai:Provider" "Gemini" --project src\Host\CreatorAnalytics.Api
 dotnet user-secrets set "Ai:Model" "gemini-3.8-flash" --project src\Host\CreatorAnalytics.Api
 dotnet user-secrets set "Ai:ApiKey" "<your key>" --project src\Host\CreatorAnalytics.Api
+dotnet user-secrets set "Ai:FallbackModel" "gemini-3.5-flash-lite" --project src\Host\CreatorAnalytics.Api
 ```
 
 With no `Ai:Provider` set, the deterministic template writer is used. **Automated tests never
