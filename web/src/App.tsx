@@ -23,7 +23,7 @@ export default function App() {
       <header className="border-b bg-white">
         <div className="mx-auto flex max-w-3xl items-center justify-between p-4">
           <Link to="/" className="text-xl font-bold">
-            CreatorAnalytics
+            Content Dock
           </Link>
           <AuthenticatedTemplate>
             <div className="flex items-center gap-3 text-sm">

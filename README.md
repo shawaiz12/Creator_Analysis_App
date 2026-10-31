@@ -1,12 +1,12 @@
-# CreatorAnalytics
+# Content Dock
 
 [![CI](https://github.com/shawaiz12/Creator_Analysis_App/actions/workflows/ci.yml/badge.svg)](https://github.com/shawaiz12/Creator_Analysis_App/actions/workflows/ci.yml)
 
-> A multi-tenant SaaS backend for YouTube channel teams. It ingests video performance
+>A multi-tenant SaaS for YouTube channel teams (code name: CreatorAnalytics)
 > data, turns it into AI-assisted strategy drafts, and guarantees that **no AI output is
 > used until a human has approved it**.
 
-Built with .NET 10, ASP.NET Core, EF Core and PostgreSQL. It runs with one command in
+Built with .NET 10, ASP.NET Core, EF Core and PostgreSQL, with a React frontend. It runs with one command in
 Docker, builds and tests itself in GitHub Actions, and every major decision is written down
 as an Architecture Decision Record.
 
@@ -480,13 +480,11 @@ consequences:
 
 Being honest about scope matters more than a long feature list:
 
--- **The AI runs on a free Gemini key.** Free-tier limits are not published per model and can
-  change, and the provider's OpenAI-compatibility layer is labelled beta by Google.
+- **The AI runs on a free Gemini key.** Free-tier limits are not published per model and can
+  change, and Google labels its OpenAI-compatibility layer beta. A second model can be
+  configured as a fallback (ADR 0009).
 - **Free-tier hosting.** The API sleeps when idle and wakes in about a minute (ADR 0008).
-- **No cloud AI provider has been tried.** The generator is verified against a local Ollama
-  model; a hosted provider is one configuration change, untested.
-- **No user interface.** It is an API; the examples use PowerShell.
-- **No deployment.** It is run locally by design (see [CI](#ci)).
+- **Sign-in is limited to the owner's Microsoft tenant.** Visitors cannot register yet.
 - **Not yet audited:** invitation and onboarding actions (strategy and AI actions are).
 - **Still to add:** a per-organization daily cap on AI drafts, token accounting per request,
   and rate limiting.
