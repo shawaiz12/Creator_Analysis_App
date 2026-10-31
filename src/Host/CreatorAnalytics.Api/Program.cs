@@ -16,6 +16,7 @@ using CreatorAnalytics.Api.Health;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using CreatorAnalytics.SharedKernel.Data;
 using CreatorAnalytics.Api.Ai;
+using CreatorAnalytics.Api.Guest;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,6 +44,7 @@ builder.Services.AddAuditModule(connectionString);
 builder.Services.AddIntegrationModule(connectionString);
 // Optional AI provider. With no Ai:Provider configured, the template writer stays in use.
 builder.Services.AddConfiguredAi(builder.Configuration);
+builder.Services.AddGuestAccess(builder.Configuration);
 
 
 // JWT bearer authentication (Microsoft Entra ID).
@@ -76,6 +78,8 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
 
 
 // Optional: create or update the database schema on startup (used by the Docker setup).
@@ -99,6 +103,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors(WebCorsPolicy);
+app.UseGuestAccess();
 
 // Identity and multi-tenancy pipeline. The order matters.
 app.UseAuthentication();
@@ -109,6 +114,7 @@ app.MapStrategyEndpoints();
 app.MapIdentityEndpoints();
 app.MapAuditEndpoints();
 app.MapIntegrationEndpoints();
+app.MapGuestEndpoints();
 
 app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
 app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
