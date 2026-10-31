@@ -1,16 +1,11 @@
 import { InteractionRequiredAuthError } from '@azure/msal-browser'
 import { apiScopes, msalInstance } from '../auth/msal'
+import { demoFetch } from '../demo/demoApi'
+import { isDemoMode } from '../demo/demoMode'
+import { ApiError, SignInRequiredError } from './errors'
 
-export class SignInRequiredError extends Error {}
-
-export class ApiError extends Error {
-  status: number
-
-  constructor(status: number, message: string) {
-    super(message)
-    this.status = status
-  }
-}
+// Other files import these two from here, so keep them available.
+export { ApiError, SignInRequiredError }
 
 async function getAccessToken(): Promise<string> {
   const account = msalInstance.getActiveAccount() ?? msalInstance.getAllAccounts()[0]
@@ -30,6 +25,9 @@ async function getAccessToken(): Promise<string> {
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+  // Guest mode: answer from the in-browser demo backend. No token, no network.
+  if (isDemoMode()) return demoFetch<T>(path, init)
+
   const token = await getAccessToken()
 
   const headers = new Headers(init.headers)
