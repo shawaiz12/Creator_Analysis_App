@@ -92,10 +92,12 @@ export default function App() {
                     navigate(`/orgs/${DEMO_TENANT_ID}`)
                   }}
                 >
-                  Try the demo
+                  Continue as guest
                 </button>
               </div>
-              <p className="mt-2 text-sm text-slate-500">No account needed. Explore with sample data.</p>
+              <p className="mt-2 text-sm text-slate-500">
+                No account needed. Explore with sample data, including real AI drafts (limited per day).
+              </p>
             </UnauthenticatedTemplate>
 
             <AuthenticatedTemplate>

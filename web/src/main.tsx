@@ -25,12 +25,14 @@ async function start() {
       msalInstance.setActiveAccount((event.payload as AuthenticationResult).account)
     }
   })
+
   // An address ending in ?demo=1 opens guest mode straight away.
   if (new URLSearchParams(window.location.search).get('demo') === '1') {
     enterDemo()
     const target = window.location.pathname === '/' ? `/orgs/${DEMO_TENANT_ID}` : window.location.pathname
     window.history.replaceState({}, '', target)
   }
+
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <MsalProvider instance={msalInstance}>

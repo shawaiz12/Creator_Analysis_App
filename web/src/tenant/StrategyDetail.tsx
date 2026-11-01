@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ApiError } from '../api/apiFetch'
 import { useVideos } from '../api/integration'
+import { GUEST_DAILY_AI_LIMIT, useDemoAiLeft } from '../demo/demoApi'
+import { useIsDemo } from '../demo/demoMode'
 import {
   useAddRevision,
   useApprove,
@@ -40,6 +42,8 @@ function GenerationPanel({
   editable: boolean
 }) {
   const generate = useGenerate(tenantId, strategyId)
+  const isDemo = useIsDemo()
+  const aiLeft = useDemoAiLeft()
 
   if (!editable && requests.length === 0) return null
 
@@ -52,6 +56,12 @@ function GenerationPanel({
             The draft is written in the background and appears here. It still needs your edits and an Admin's
             approval.
           </p>
+          {isDemo && (
+            <p className="mt-1 text-xs text-amber-800">
+              Demo: {aiLeft} of {GUEST_DAILY_AI_LIMIT} free AI drafts left. Drafts you generate are written by a real
+              AI model from this sample video's retention data and script.
+            </p>
+          )}
         </div>
         {editable && (
           <button

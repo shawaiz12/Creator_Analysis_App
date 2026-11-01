@@ -7,7 +7,8 @@ public sealed record GuestInsightRequest(
     string? VideoTitle,
     int DurationSeconds,
     string? Transcript,
-    double[]? Retention);
+    double[]? Retention,
+    string[]? RejectionReasons);
 
 public sealed record GuestInsightResponse(string Content, string Model, string PromptVersion);
 
@@ -15,6 +16,7 @@ public static class GuestEndpoints
 {
     private const int MaxTitleCharacters = 200;
     private const int MaxTranscriptCharacters = 8_000;
+    private const int MaxReasonCharacters = 500;
     private static readonly TimeSpan GenerationTimeout = TimeSpan.FromSeconds(75);
 
     public static void MapGuestEndpoints(this IEndpointRouteBuilder app)
@@ -99,7 +101,15 @@ public static class GuestEndpoints
 
         var dropOffs = RetentionAnalyzer.FindDropOffs(points, request.DurationSeconds);
 
-        input = new InsightInput(title, request.DurationSeconds, transcript, dropOffs, Array.Empty<string>());
+        // Reasons an Admin gave for rejecting earlier drafts. Untrusted text, so it is bounded.
+        var reasons = (request.RejectionReasons ?? Array.Empty<string>())
+            .Select(reason => reason?.Trim() ?? string.Empty)
+            .Where(reason => reason.Length > 0)
+            .Select(reason => reason.Length > MaxReasonCharacters ? reason[..MaxReasonCharacters] : reason)
+            .Take(InsightInputBuilder.MaxRejectionReasons)
+            .ToList();
+
+        input = new InsightInput(title, request.DurationSeconds, transcript, dropOffs, reasons);
         error = string.Empty;
         return true;
     }

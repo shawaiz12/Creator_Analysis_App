@@ -4,6 +4,7 @@ const FLAG_KEY = 'contentdock.demo'
 const ROLE_KEY = 'contentdock.demo.role'
 
 export const DEMO_TENANT_ID = '0d3a1f6e-8c44-4b6a-9a51-3f7c2b9d1e10'
+export const DEMO_USER_ID = '0d3a1f6e-8c44-4b6a-9a51-3f7c2b9d1e11'
 export const DEMO_USER_EMAIL = 'guest@contentdock.demo'
 
 export type DemoRole = 'Admin' | 'Strategist' | 'Editor'
