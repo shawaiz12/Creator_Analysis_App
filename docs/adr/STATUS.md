@@ -1,6 +1,6 @@
 # Content Dock (code name CreatorAnalytics): project status
 
-Last updated: 2026-10-31
+Last updated: to 2026-11-02
 
 ## Live
 
@@ -26,13 +26,15 @@ Last updated: 2026-10-31
   retention, strategies with the approval workflow, team and invitations, audit trail.
 - **Operations:** health endpoints, JSON logs, migrators, Docker, CI on PostgreSQL.
 
+ **Guest mode:** "Continue as guest" opens a demo organization stored in the browser, with real AI drafts through a rate-limited public endpoint (ADR 0010).
+
 ## Not done yet
 
 1. Real Google OAuth and a real YouTube client (designed in ADR 0004).
 2. Public sign-up for visitors; sign-in is limited to the owner's Microsoft tenant.
 3. Invitation and onboarding actions are not in the audit trail.
-4. Rate limiting, a per-organization AI draft cap and token accounting.
-5. Visual redesign (Content Dock identity, dark theme, charts) and a demo mode.
+4. Rate limiting on signed-in routes, a per-organization AI draft cap and token accounting (the guest endpoint is already limited).
+5. Visual redesign (Content Dock identity, dark theme, charts).
 
 ## Run it
 

@@ -49,6 +49,9 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         // talks to a temporary database instead of your real one.
         Environment.SetEnvironmentVariable("ConnectionStrings__Default", testConnection);
 
+        // Guest-mode tests use a small per-visitor limit, so the 429 can be proven with a few requests.
+        Environment.SetEnvironmentVariable("Guest__PerIpDailyLimit", "3");
+
         using var scope = Services.CreateScope();
         scope.ServiceProvider.GetRequiredService<StrategyDbContext>().Database.Migrate();
         scope.ServiceProvider.GetRequiredService<IdentityDbContext>().Database.Migrate();

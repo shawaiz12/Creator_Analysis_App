@@ -524,6 +524,8 @@ xUnit · NetArchTest
 
 - App: https://contentdock-nine.vercel.app
 - API health: https://creatoranalytics-api.onrender.com/health/live
+- Try it without an account: https://contentdock-nine.vercel.app/?demo=1 ("Continue as guest").
+  Sample data stays in your browser, AI drafts are real and limited per day (ADR 0010).
 
 Hosted entirely on free tiers (Vercel, Render, Neon), so the API sleeps after 15 minutes
 without traffic. **The first load after idle can take about a minute** while it wakes up.

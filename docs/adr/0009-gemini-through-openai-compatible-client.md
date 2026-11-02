@@ -5,7 +5,7 @@ Status: Accepted
 ## Context
 Ollama cannot run on a free web host, and the deployment must stay at no cost (ADR 0008).
 Prompts can be large: transcripts are capped at 60,000 characters (about 15,000 tokens),
-plus 1,500 tokens of output.
+plus up to 4,096 tokens of output (Gemini counts its hidden thinking tokens against this cap).
 
 ## Decision
 - Use Google's free Gemini API (`gemini-3.8-flash`) through its OpenAI-compatible endpoint with
