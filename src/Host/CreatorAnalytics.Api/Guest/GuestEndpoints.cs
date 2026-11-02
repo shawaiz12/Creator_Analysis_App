@@ -35,7 +35,12 @@ public static class GuestEndpoints
         if (!TryBuildInput(request, out var input, out var error))
             return Results.Json(new { error }, statusCode: StatusCodes.Status400BadRequest);
 
-        logger.LogInformation("Guest draft requested from {Ip}", http.Connection.RemoteIpAddress);
+        logger.LogInformation(
+    "Guest draft requested from {Ip} (connection {Remote}, forwarded-for {Forwarded}, cloudflare {Cf})",
+    GuestAccessExtensions.ClientIp(http),
+    http.Connection.RemoteIpAddress,
+    http.Request.Headers["X-Forwarded-For"].ToString(),
+    http.Request.Headers["CF-Connecting-IP"].ToString());
 
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(GenerationTimeout);

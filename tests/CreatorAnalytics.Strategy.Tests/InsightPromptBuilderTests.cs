@@ -115,7 +115,7 @@ public class InsightPromptBuilderTests
         var prompt = InsightPromptBuilder.Build(Input());
 
         Assert.Equal("llm-v1", prompt.Version);
-        Assert.Equal(1500, prompt.MaxOutputTokens);
+        Assert.Equal(4096, prompt.MaxOutputTokens);
     }
 
     [Fact]

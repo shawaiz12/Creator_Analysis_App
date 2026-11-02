@@ -7,7 +7,8 @@ public sealed record InsightPrompt(string System, string User, int MaxOutputToke
 public static class InsightPromptBuilder
 {
     public const string Version = "llm-v1";
-    public const int MaxOutputTokens = 1500;
+    // Gemini counts its hidden "thinking" tokens against this cap, so it must leave room for them.
+    public const int MaxOutputTokens = 4096;
 
     private const string SystemPrompt = """
         You write draft strategy notes for YouTube creators.
