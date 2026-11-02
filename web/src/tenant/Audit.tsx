@@ -19,19 +19,19 @@ function AuditRow({
   const raw = typeof entry.data === 'string' ? entry.data : JSON.stringify(entry.data, null, 2)
 
   return (
-    <li className="rounded border bg-white p-3">
+    <li className="rounded border bg-surface p-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           {/* Plain text on purpose: rejection reasons are typed by people. */}
           <p className="font-medium">{describeEntry(entry)}</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-subtle">
             {actorOf(entry, emailOf)} · {new Date(entry.recordedAtUtc).toLocaleString()}
           </p>
         </div>
         {documentId && (
           <Link
             to={`/orgs/${tenantId}/strategies/${documentId}`}
-            className="text-sm text-indigo-600 hover:underline"
+            className="text-sm text-link hover:underline"
           >
             View strategy
           </Link>
@@ -39,8 +39,8 @@ function AuditRow({
       </div>
 
       <details className="mt-2">
-        <summary className="cursor-pointer text-xs text-slate-500">Raw record ({entry.eventType})</summary>
-        <pre className="mt-2 overflow-x-auto rounded bg-slate-50 p-2 text-xs">{raw}</pre>
+        <summary className="cursor-pointer text-xs text-subtle">Raw record ({entry.eventType})</summary>
+        <pre className="mt-2 overflow-x-auto rounded bg-canvas p-2 text-xs">{raw}</pre>
       </details>
     </li>
   )
@@ -61,7 +61,7 @@ function AuditAdmin({ tenantId }: { tenantId: string }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold">Audit trail</h3>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted">
             Every strategy action is saved with the change itself, then copied here a few seconds later. Newest first.
           </p>
         </div>
@@ -71,11 +71,11 @@ function AuditAdmin({ tenantId }: { tenantId: string }) {
         </label>
       </div>
 
-      {audit.isPending && <p className="mt-3 text-slate-500">Loading the audit trail…</p>}
-      {audit.isError && <p className="mt-3 text-red-700">{audit.error.message}</p>}
+      {audit.isPending && <p className="mt-3 text-subtle">Loading the audit trail…</p>}
+      {audit.isError && <p className="mt-3 text-bad">{audit.error.message}</p>}
 
       {audit.data && entries.length === 0 && (
-        <p className="mt-3 text-slate-600">
+        <p className="mt-3 text-muted">
           {page === 0
             ? 'Nothing recorded yet. Request a draft or review a strategy and an entry appears here.'
             : 'No older entries.'}
@@ -92,21 +92,21 @@ function AuditAdmin({ tenantId }: { tenantId: string }) {
 
       <div className="mt-4 flex items-center gap-3 text-sm">
         <button
-          className="rounded border px-3 py-1 hover:bg-slate-100 disabled:opacity-50"
+          className="rounded border px-3 py-1 hover:bg-raised disabled:opacity-50"
           disabled={page === 0}
           onClick={() => setPage(page - 1)}
         >
           Newer
         </button>
-        <span className="text-slate-500">Page {page + 1}</span>
+        <span className="text-subtle">Page {page + 1}</span>
         <button
-          className="rounded border px-3 py-1 hover:bg-slate-100 disabled:opacity-50"
+          className="rounded border px-3 py-1 hover:bg-raised disabled:opacity-50"
           disabled={entries.length < AUDIT_PAGE_SIZE}
           onClick={() => setPage(page + 1)}
         >
           Older
         </button>
-        {audit.isFetching && <span className="text-slate-400">Refreshing…</span>}
+        {audit.isFetching && <span className="text-subtle">Refreshing…</span>}
       </div>
     </div>
   )
@@ -116,7 +116,7 @@ export function Audit() {
   const { tenantId, role } = useTenant()
 
   if (!canViewAudit(role)) {
-    return <p className="rounded border bg-white p-4 text-slate-600">Only Admins can read the audit trail.</p>
+    return <p className="rounded border bg-surface p-4 text-muted">Only Admins can read the audit trail.</p>
   }
 
   return <AuditAdmin tenantId={tenantId} />

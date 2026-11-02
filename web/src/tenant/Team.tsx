@@ -17,10 +17,10 @@ const roleHelp: Record<string, string> = {
 }
 
 const statusStyles: Record<Invitation['status'], string> = {
-  Pending: 'bg-amber-100 text-amber-800',
-  Accepted: 'bg-green-100 text-green-800',
-  Revoked: 'bg-slate-100 text-slate-600',
-  Expired: 'bg-slate-100 text-slate-600',
+  Pending: 'bg-pending-soft text-pending',
+  Accepted: 'bg-ok-soft text-ok',
+  Revoked: 'bg-raised text-muted',
+  Expired: 'bg-raised text-muted',
 }
 
 function InviteForm({ tenantId }: { tenantId: string }) {
@@ -30,14 +30,14 @@ function InviteForm({ tenantId }: { tenantId: string }) {
 
   return (
     <form
-      className="rounded border bg-white p-4"
+      className="rounded border bg-surface p-4"
       onSubmit={(event) => {
         event.preventDefault()
         create.mutate({ email: email.trim(), role }, { onSuccess: () => setEmail('') })
       }}
     >
       <h3 className="text-lg font-semibold">Invite someone</h3>
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted">
         No email is sent. After creating the invitation, copy its link and send it to the person yourself. The
         invitation only works when they sign in with this exact address, and it expires after 7 days.
       </p>
@@ -63,14 +63,14 @@ function InviteForm({ tenantId }: { tenantId: string }) {
         <button
           type="submit"
           disabled={create.isPending || !email.trim()}
-          className="rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          className="rounded bg-primary px-4 py-2 text-sm font-medium text-on-solid hover:bg-primary-hover disabled:opacity-50"
         >
           {create.isPending ? 'Creating…' : 'Create invitation'}
         </button>
       </div>
 
-      <p className="mt-2 text-xs text-slate-500">{roleHelp[role]}</p>
-      {create.isError && <p className="mt-2 text-sm text-red-700">{create.error.message}</p>}
+      <p className="mt-2 text-xs text-subtle">{roleHelp[role]}</p>
+      {create.isError && <p className="mt-2 text-sm text-bad">{create.error.message}</p>}
     </form>
   )
 }
@@ -92,11 +92,11 @@ function InvitationRow({ invitation, tenantId }: { invitation: Invitation; tenan
   }
 
   return (
-    <li className="rounded border bg-white p-3">
+    <li className="rounded border bg-surface p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="font-medium">{invitation.email}</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-subtle">
             {invitation.role} · created {new Date(invitation.createdAtUtc).toLocaleDateString()} · expires{' '}
             {new Date(invitation.expiresAtUtc).toLocaleDateString()}
           </p>
@@ -112,14 +112,14 @@ function InvitationRow({ invitation, tenantId }: { invitation: Invitation; tenan
             readOnly
             value={link}
             onFocus={(event) => event.currentTarget.select()}
-            className="min-w-56 flex-1 rounded border bg-slate-50 px-2 py-1 text-xs"
+            className="min-w-56 flex-1 rounded border bg-canvas px-2 py-1 text-xs"
             aria-label="Invitation link"
           />
-          <button className="rounded border px-3 py-1 text-sm hover:bg-slate-100" onClick={copy}>
+          <button className="rounded border px-3 py-1 text-sm hover:bg-raised" onClick={copy}>
             {copied ? 'Copied' : 'Copy link'}
           </button>
           <button
-            className="rounded border border-red-300 px-3 py-1 text-sm text-red-800 hover:bg-red-50 disabled:opacity-50"
+            className="rounded border border-bad/40 px-3 py-1 text-sm text-bad hover:bg-bad-soft disabled:opacity-50"
             disabled={revoke.isPending}
             onClick={() => revoke.mutate(invitation.id)}
           >
@@ -128,7 +128,7 @@ function InvitationRow({ invitation, tenantId }: { invitation: Invitation; tenan
         </div>
       )}
 
-      {revoke.isError && <p className="mt-2 text-sm text-red-700">{revoke.error.message}</p>}
+      {revoke.isError && <p className="mt-2 text-sm text-bad">{revoke.error.message}</p>}
     </li>
   )
 }
@@ -142,20 +142,20 @@ function MemberList({ tenantId }: { tenantId: string }) {
     <section>
       <h3 className="text-lg font-semibold">Members</h3>
 
-      {members.isPending && <p className="mt-2 text-slate-500">Loading members…</p>}
-      {members.isError && <p className="mt-2 text-red-700">{members.error.message}</p>}
+      {members.isPending && <p className="mt-2 text-subtle">Loading members…</p>}
+      {members.isError && <p className="mt-2 text-bad">{members.error.message}</p>}
 
       {members.data && (
         <ul className="mt-3 space-y-2">
           {members.data.map((member) => (
-            <li key={member.userId} className="flex items-center justify-between rounded border bg-white p-3">
+            <li key={member.userId} className="flex items-center justify-between rounded border bg-surface p-3">
               <span className="font-medium">
                 {member.email}
                 {member.email.toLowerCase() === myEmail && (
-                  <span className="ml-2 text-xs font-normal text-slate-500">(you)</span>
+                  <span className="ml-2 text-xs font-normal text-subtle">(you)</span>
                 )}
               </span>
-              <span className="rounded bg-slate-100 px-2 py-0.5 text-xs">{member.role}</span>
+              <span className="rounded bg-raised px-2 py-0.5 text-xs">{member.role}</span>
             </li>
           ))}
         </ul>
@@ -175,11 +175,11 @@ function TeamAdmin({ tenantId }: { tenantId: string }) {
       <section>
         <h3 className="text-lg font-semibold">Invitations</h3>
 
-        {invitations.isPending && <p className="mt-2 text-slate-500">Loading invitations…</p>}
-        {invitations.isError && <p className="mt-2 text-red-700">{invitations.error.message}</p>}
+        {invitations.isPending && <p className="mt-2 text-subtle">Loading invitations…</p>}
+        {invitations.isError && <p className="mt-2 text-bad">{invitations.error.message}</p>}
 
         {invitations.data && invitations.data.length === 0 && (
-          <p className="mt-2 text-slate-600">No invitations yet.</p>
+          <p className="mt-2 text-muted">No invitations yet.</p>
         )}
 
         {invitations.data && invitations.data.length > 0 && (
@@ -198,7 +198,7 @@ export function Team() {
   const { tenantId, role } = useTenant()
 
   if (!canManageTeam(role)) {
-    return <p className="rounded border bg-white p-4 text-slate-600">Only Admins can manage the team.</p>
+    return <p className="rounded border bg-surface p-4 text-muted">Only Admins can manage the team.</p>
   }
 
   return <TeamAdmin tenantId={tenantId} />

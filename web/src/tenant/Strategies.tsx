@@ -15,7 +15,7 @@ function NewStrategyForm() {
 
   return (
     <form
-      className="mb-6 rounded border bg-white p-4"
+      className="mb-6 rounded border bg-surface p-4"
       onSubmit={(event) => {
         event.preventDefault()
         create.mutate(videoId, {
@@ -43,15 +43,15 @@ function NewStrategyForm() {
         <button
           type="submit"
           disabled={!videoId || create.isPending}
-          className="rounded bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          className="rounded bg-primary px-4 py-2 font-medium text-on-solid hover:bg-primary-hover disabled:opacity-50"
         >
           {create.isPending ? 'Creating…' : 'Create'}
         </button>
       </div>
       {videos.data?.length === 0 && (
-        <p className="mt-2 text-sm text-slate-500">No videos yet. Sync a channel on the Videos tab first.</p>
+        <p className="mt-2 text-sm text-subtle">No videos yet. Sync a channel on the Videos tab first.</p>
       )}
-      {create.isError && <p className="mt-2 text-sm text-red-700">{create.error.message}</p>}
+      {create.isError && <p className="mt-2 text-sm text-bad">{create.error.message}</p>}
     </form>
   )
 }
@@ -72,11 +72,11 @@ export function Strategies() {
 
       <h3 className="text-lg font-semibold">Strategies</h3>
 
-      {strategies.isPending && <p className="mt-2 text-slate-500">Loading strategies…</p>}
-      {strategies.isError && <p className="mt-2 text-red-700">{strategies.error.message}</p>}
+      {strategies.isPending && <p className="mt-2 text-subtle">Loading strategies…</p>}
+      {strategies.isError && <p className="mt-2 text-bad">{strategies.error.message}</p>}
 
       {strategies.data && strategies.data.length === 0 && (
-        <p className="mt-2 text-slate-600">
+        <p className="mt-2 text-muted">
           {role === 'Editor' ? 'No approved strategies yet.' : 'No strategies yet. Start one above.'}
         </p>
       )}
@@ -87,11 +87,11 @@ export function Strategies() {
             <li key={strategy.id}>
               <Link
                 to={`/orgs/${tenantId}/strategies/${strategy.id}`}
-                className="flex items-center justify-between gap-3 rounded border bg-white p-3 hover:border-indigo-400"
+                className="flex items-center justify-between gap-3 rounded border bg-surface p-3 hover:border-line-strong"
               >
                 <div>
                   <p className="font-medium">{titleOf(strategy.videoId)}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-subtle">
                     {new Date(strategy.createdAtUtc).toLocaleDateString()} · {strategy.revisionCount}{' '}
                     {strategy.revisionCount === 1 ? 'revision' : 'revisions'}
                   </p>

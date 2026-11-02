@@ -7,7 +7,7 @@ export function AnalyticsOnly() {
 
   if (!canViewAnalytics(context.role)) {
     return (
-      <p className="rounded border bg-white p-4 text-slate-600">
+      <p className="rounded border bg-surface p-4 text-muted">
         Videos and retention data are available to Admins and Strategists.
       </p>
     )

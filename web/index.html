@@ -4,7 +4,19 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f1b26" />
+    <meta
+      name="description"
+      content="Content Dock reads each video's retention curve, drafts script and thumbnail fixes with AI, and holds every suggestion until an Admin approves it."
+    />
     <title>Content Dock</title>
+    <script>
+      // Apply the saved theme before the first paint so the page never flashes the wrong colours.
+      try {
+        var saved = localStorage.getItem('contentdock.theme')
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

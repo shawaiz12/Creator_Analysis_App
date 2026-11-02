@@ -1,11 +1,12 @@
 import type { StrategyStatus } from '../api/strategies'
 
-const styles: Record<StrategyStatus, string> = {
-  Draft: 'bg-slate-100 text-slate-700',
-  PendingApproval: 'bg-amber-100 text-amber-800',
-  NeedsRevision: 'bg-red-100 text-red-800',
-  Approved: 'bg-green-100 text-green-800',
-  Implemented: 'bg-indigo-100 text-indigo-800',
+// Colour is meaning here: amber = waiting for a person, coral = sent back, green = approved.
+const styles: Record<StrategyStatus, { badge: string; dot: string }> = {
+  Draft: { badge: 'bg-raised text-muted', dot: 'bg-subtle' },
+  PendingApproval: { badge: 'bg-pending-soft text-pending', dot: 'bg-pending' },
+  NeedsRevision: { badge: 'bg-bad-soft text-bad', dot: 'bg-bad' },
+  Approved: { badge: 'bg-ok-soft text-ok', dot: 'bg-ok' },
+  Implemented: { badge: 'bg-link/15 text-link', dot: 'bg-link' },
 }
 
 const labels: Record<StrategyStatus, string> = {
@@ -17,5 +18,12 @@ const labels: Record<StrategyStatus, string> = {
 }
 
 export function StatusBadge({ status }: { status: StrategyStatus }) {
-  return <span className={`rounded px-2 py-0.5 text-xs font-medium ${styles[status]}`}>{labels[status]}</span>
+  const style = styles[status]
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${style.badge}`}>
+      <span className={`size-1.5 rounded-full ${style.dot}`} />
+      {labels[status]}
+    </span>
+  )
 }

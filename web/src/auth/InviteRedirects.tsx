@@ -14,7 +14,7 @@ export function RememberInvite() {
   if (!invitationId) return null
 
   return (
-    <p className="mb-4 rounded border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
+    <p className="mb-4 rounded border border-line bg-raised p-3 text-sm text-link">
       You were invited to join an organization. Sign in with the address the invitation was sent to, and you will
       come straight back to it.
     </p>

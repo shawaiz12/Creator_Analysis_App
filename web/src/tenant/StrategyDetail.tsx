@@ -25,7 +25,7 @@ const formatDate = (value: string) => new Date(value).toLocaleString()
 
 function ErrorLine({ error }: { error: Error | null }) {
   if (!error) return null
-  return <p className="mt-2 text-sm text-red-700">{error.message}</p>
+  return <p className="mt-2 text-sm text-bad">{error.message}</p>
 }
 
 function GenerationPanel({
@@ -48,16 +48,16 @@ function GenerationPanel({
   if (!editable && requests.length === 0) return null
 
   return (
-    <section className="mt-6 rounded border bg-white p-4">
+    <section className="mt-6 rounded border bg-surface p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
           <h4 className="font-semibold">AI drafts</h4>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-muted">
             The draft is written in the background and appears here. It still needs your edits and an Admin's
             approval.
           </p>
           {isDemo && (
-            <p className="mt-1 text-xs text-amber-800">
+            <p className="mt-1 text-xs text-pending">
               Demo: {aiLeft} of {GUEST_DAILY_AI_LIMIT} free AI drafts left. Drafts you generate are written by a real
               AI model from this sample video's retention data and script.
             </p>
@@ -65,7 +65,7 @@ function GenerationPanel({
         </div>
         {editable && (
           <button
-            className="shrink-0 rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="shrink-0 rounded bg-primary px-4 py-2 text-sm font-medium text-on-solid hover:bg-primary-hover disabled:opacity-50"
             disabled={generate.isPending || generating}
             onClick={() => generate.mutate()}
           >
@@ -79,14 +79,14 @@ function GenerationPanel({
       {requests.length > 0 && (
         <ul className="mt-3 space-y-1 text-sm">
           {requests.map((request) => (
-            <li key={request.id} className="flex flex-wrap gap-x-2 text-slate-600">
-              <span className="text-slate-500">{formatDate(request.requestedAtUtc)}</span>
+            <li key={request.id} className="flex flex-wrap gap-x-2 text-muted">
+              <span className="text-subtle">{formatDate(request.requestedAtUtc)}</span>
               <span>
                 {request.status === 'Pending' && 'Generating…'}
                 {request.status === 'Succeeded' && 'Draft added'}
                 {request.status === 'Failed' && `Failed${request.error ? `: ${request.error}` : ''}`}
               </span>
-              {request.model && <span className="text-slate-400">({request.model})</span>}
+              {request.model && <span className="text-subtle">({request.model})</span>}
             </li>
           ))}
         </ul>
@@ -102,9 +102,9 @@ function RevisionEditor({ strategy, tenantId }: { strategy: Strategy; tenantId: 
   const unchanged = content.trim() === current.trim()
 
   return (
-    <section className="mt-6 rounded border bg-white p-4">
+    <section className="mt-6 rounded border bg-surface p-4">
       <h4 className="font-semibold">Edit</h4>
-      <p className="text-sm text-slate-600">Saving creates a new revision. Earlier revisions are never overwritten.</p>
+      <p className="text-sm text-muted">Saving creates a new revision. Earlier revisions are never overwritten.</p>
       <textarea
         className="mt-3 w-full rounded border px-3 py-2 font-sans text-sm"
         rows={12}
@@ -113,7 +113,7 @@ function RevisionEditor({ strategy, tenantId }: { strategy: Strategy; tenantId: 
         onChange={(event) => setContent(event.target.value)}
       />
       <button
-        className="mt-2 rounded border px-4 py-2 text-sm font-medium hover:bg-slate-100 disabled:opacity-50"
+        className="mt-2 rounded border px-4 py-2 text-sm font-medium hover:bg-raised disabled:opacity-50"
         disabled={add.isPending || !content.trim() || unchanged}
         onClick={() => add.mutate(content)}
       >
@@ -128,14 +128,14 @@ function SubmitBar({ strategy, tenantId }: { strategy: Strategy; tenantId: strin
   const submit = useSubmit(tenantId, strategy.id)
 
   return (
-    <section className="mt-6 rounded border bg-white p-4">
+    <section className="mt-6 rounded border bg-surface p-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-muted">
           When the content is ready, send it to an Admin for approval. It is locked while under review. Unsaved edits
           are not included, so save a revision first.
         </p>
         <button
-          className="shrink-0 rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          className="shrink-0 rounded bg-primary px-4 py-2 text-sm font-medium text-on-solid hover:bg-primary-hover disabled:opacity-50"
           disabled={!strategy.currentRevision || submit.isPending}
           onClick={() => submit.mutate()}
         >
@@ -158,15 +158,15 @@ function ReviewPanel({ strategy, tenantId }: { strategy: Strategy; tenantId: str
   const busy = approve.isPending || reject.isPending
 
   return (
-    <section className="mt-6 rounded border-2 border-amber-300 bg-amber-50 p-4">
+    <section className="mt-6 rounded border-2 border-pending/40 bg-pending-soft p-4">
       <h4 className="font-semibold">Your review</h4>
-      <p className="mt-1 text-sm text-slate-700">
+      <p className="mt-1 text-sm text-muted">
         You are reviewing <strong>revision {revision.versionNumber}</strong>, shown above. Approval applies to exactly
         this revision. If the strategy changes before you decide, the approval is refused.
       </p>
 
       <button
-        className="mt-3 rounded bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-50"
+        className="mt-3 rounded bg-ok px-4 py-2 text-sm font-medium text-on-solid hover:bg-ok/85 disabled:opacity-50"
         disabled={busy}
         onClick={() => approve.mutate(revision.id)}
       >
@@ -174,20 +174,20 @@ function ReviewPanel({ strategy, tenantId }: { strategy: Strategy; tenantId: str
       </button>
       <ErrorLine error={approve.error} />
 
-      <div className="mt-5 border-t border-amber-200 pt-4">
+      <div className="mt-5 border-t border-pending/40 pt-4">
         <label htmlFor="reason" className="block text-sm font-medium">
           Or send it back with a reason (required)
         </label>
-        <p className="text-xs text-slate-600">The reason is kept in the history and given to the next AI draft as context.</p>
+        <p className="text-xs text-muted">The reason is kept in the history and given to the next AI draft as context.</p>
         <textarea
           id="reason"
-          className="mt-2 w-full rounded border bg-white px-3 py-2 text-sm"
+          className="mt-2 w-full rounded border bg-surface px-3 py-2 text-sm"
           rows={3}
           value={reason}
           onChange={(event) => setReason(event.target.value)}
         />
         <button
-          className="mt-2 rounded bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800 disabled:opacity-50"
+          className="mt-2 rounded bg-bad px-4 py-2 text-sm font-medium text-on-solid hover:bg-bad/85 disabled:opacity-50"
           disabled={busy || !reason.trim()}
           onClick={() =>
             reject.mutate({ revisionId: revision.id, reason: reason.trim() }, { onSuccess: () => setReason('') })
@@ -205,10 +205,10 @@ function ImplementPanel({ strategy, tenantId }: { strategy: Strategy; tenantId: 
   const implemented = useMarkImplemented(tenantId, strategy.id)
 
   return (
-    <section className="mt-6 rounded border bg-white p-4">
-      <p className="text-sm text-slate-600">This strategy is approved. Once the team has applied it, mark it as done.</p>
+    <section className="mt-6 rounded border bg-surface p-4">
+      <p className="text-sm text-muted">This strategy is approved. Once the team has applied it, mark it as done.</p>
       <button
-        className="mt-3 rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+        className="mt-3 rounded bg-primary px-4 py-2 text-sm font-medium text-on-solid hover:bg-primary-hover disabled:opacity-50"
         disabled={implemented.isPending}
         onClick={() => implemented.mutate()}
       >
@@ -232,19 +232,19 @@ export function StrategyDetail() {
   useRefreshWhenGenerationEnds(tenantId, strategyId, generating)
 
   const back = (
-    <Link to={`/orgs/${tenantId}/strategies`} className="text-sm text-indigo-600 hover:underline">
+    <Link to={`/orgs/${tenantId}/strategies`} className="text-sm text-link hover:underline">
       ← Back to strategies
     </Link>
   )
 
-  if (strategy.isPending) return <p className="text-slate-500">Loading strategy…</p>
+  if (strategy.isPending) return <p className="text-subtle">Loading strategy…</p>
 
   if (strategy.isError) {
     const missing = strategy.error instanceof ApiError && strategy.error.status === 404
     return (
       <div>
         {back}
-        <p className="mt-3 rounded border bg-white p-4 text-slate-700">
+        <p className="mt-3 rounded border bg-surface p-4 text-muted">
           {missing ? 'This strategy does not exist, or you cannot see it.' : strategy.error.message}
         </p>
       </div>
@@ -269,17 +269,20 @@ export function StrategyDetail() {
       </div>
 
       {data.status === 'NeedsRevision' && lastRejection && (
-        <p className="mt-3 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-900">
+        <p className="mt-3 rounded border border-bad/40 bg-bad-soft p-3 text-sm text-bad">
           Sent back by an Admin: {lastRejection.reason}
         </p>
       )}
 
-      <section className="mt-6 rounded border bg-white p-4">
+      <section className="mt-6 rounded border bg-surface p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h4 className="font-semibold">Current revision{revision ? ` (v${revision.versionNumber})` : ''}</h4>
           {revision && (
-            <span className="text-xs text-slate-500">
-              {revision.origin === 'Ai' ? 'AI draft' : 'Human edit'} · {formatDate(revision.createdAtUtc)}
+            <span className="text-xs text-subtle">
+              <span className={revision.origin === 'Ai' ? 'font-medium text-ai' : 'font-medium text-muted'}>
+                {revision.origin === 'Ai' ? 'AI draft' : 'Human edit'}
+              </span>{' '}
+              · {formatDate(revision.createdAtUtc)}
             </span>
           )}
         </div>
@@ -287,7 +290,7 @@ export function StrategyDetail() {
           // Plain text on purpose: AI output is untrusted, so it is never rendered as HTML.
           <pre className="mt-3 whitespace-pre-wrap break-words font-sans text-sm">{revision.content}</pre>
         ) : (
-          <p className="mt-3 text-sm text-slate-600">No content yet. Generate an AI draft or write one yourself.</p>
+          <p className="mt-3 text-sm text-muted">No content yet. Generate an AI draft or write one yourself.</p>
         )}
       </section>
 
@@ -296,12 +299,12 @@ export function StrategyDetail() {
           <h4 className="font-semibold">Review history</h4>
           <ul className="mt-2 space-y-2">
             {data.reviews.map((review) => (
-              <li key={review.id} className="rounded border bg-white p-3 text-sm">
-                <span className={`font-medium ${review.decision === 'Approved' ? 'text-green-800' : 'text-red-800'}`}>
+              <li key={review.id} className="rounded border bg-surface p-3 text-sm">
+                <span className={`font-medium ${review.decision === 'Approved' ? 'text-ok' : 'text-bad'}`}>
                   {review.decision}
                 </span>
-                <span className="text-slate-500"> · {formatDate(review.reviewedAtUtc)}</span>
-                {review.reason && <p className="mt-1 text-slate-700">Reason: {review.reason}</p>}
+                <span className="text-subtle"> · {formatDate(review.reviewedAtUtc)}</span>
+                {review.reason && <p className="mt-1 text-muted">Reason: {review.reason}</p>}
               </li>
             ))}
           </ul>

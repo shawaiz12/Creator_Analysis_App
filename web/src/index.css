@@ -1,1 +1,175 @@
 @import "tailwindcss";
+@import "@fontsource-variable/bricolage-grotesque";
+@import "@fontsource-variable/instrument-sans";
+
+/*
+  Content Dock design tokens.
+
+  Dark is the default: a harbour at night. Colour is reserved for meaning:
+    amber = waiting for a human, lilac = written by AI, green = approved, coral = sent back.
+  The light theme ("fog") is chosen with data-theme="light" on <html>.
+*/
+:root {
+  color-scheme: dark;
+
+  --canvas: #0f1b26;
+  --rail: #0b151e;
+  --surface: #172734;
+  --raised: #1f3342;
+  --line: #2a4052;
+  --line-strong: #3f5a6f;
+
+  --ink: #ece7db;
+  --muted: #a9b7c2;
+  --subtle: #8c9fae;
+
+  --primary: #ece7db;
+  --primary-hover: #fbf8f0;
+  --on-solid: #0f1b26;
+  --link: #8fd3e8;
+
+  --ai: #b9a8ff;
+  --ai-soft: rgb(185 168 255 / 0.16);
+  --pending: #f2b54b;
+  --pending-soft: rgb(242 181 75 / 0.14);
+  --ok: #62d4a3;
+  --ok-soft: rgb(98 212 163 / 0.14);
+  --bad: #ff8a78;
+  --bad-soft: rgb(255 138 120 / 0.14);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --canvas: #edf2f5;
+  --rail: #e3eaef;
+  --surface: #ffffff;
+  --raised: #e6edf2;
+  --line: #cbd7df;
+  --line-strong: #a3b5c2;
+
+  --ink: #12212c;
+  --muted: #425665;
+  --subtle: #4f6373;
+
+  --primary: #12212c;
+  --primary-hover: #25405a;
+  --on-solid: #ffffff;
+  --link: #0b6485;
+
+  --ai: #5b3fd0;
+  --ai-soft: rgb(91 63 208 / 0.1);
+  --pending: #845300;
+  --pending-soft: rgb(132 83 0 / 0.1);
+  --ok: #1b7550;
+  --ok-soft: rgb(27 117 80 / 0.1);
+  --bad: #b3321f;
+  --bad-soft: rgb(179 50 31 / 0.09);
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-rail: var(--rail);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-on-solid: var(--on-solid);
+  --color-link: var(--link);
+  --color-ai: var(--ai);
+  --color-ai-soft: var(--ai-soft);
+  --color-pending: var(--pending);
+  --color-pending-soft: var(--pending-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+
+  --font-sans: "Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--line);
+  }
+
+  html {
+    background: var(--canvas);
+    color: var(--ink);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.012em;
+  }
+
+  input,
+  select,
+  textarea {
+    background-color: var(--raised);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--subtle);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--link);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--link);
+    color: var(--canvas);
+  }
+}
+
+/* The one moment of motion: the landing curve draws itself once. */
+@keyframes draw-curve {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes lamp {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.draw-curve {
+  stroke-dasharray: 1;
+  animation: draw-curve 1.6s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.lamp {
+  animation: lamp 2.4s ease-in-out 1.6s 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .draw-curve,
+  .lamp {
+    animation: none;
+  }
+}
